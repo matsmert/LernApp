@@ -1,5 +1,7 @@
 # LernApp
 
+Vibe-Coded!
+
 Multiple-Choice-Lern-App im Fahrschul-Stil: Kapitel lernen, bis alles auf 100 % steht – mit Hugo, dem Lern-Hippo.
 
 **App öffnen:** https://matsmert.github.io/LernApp/
