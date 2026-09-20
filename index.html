@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LernApp</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LernApp">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#ffffff; --ink:#1d1d1f; --muted:#6e6e73; --faint:#a1a1a6; --line:#ededee; --soft:#f6f6f7;
+  --or:#ff7a1a; --or-deep:#f25c05; --or-light:#ffb066; --or-soft:#fff4eb;
+  --ok:#2e9d6a; --ok-soft:#ebf7f1; --bad:#d64545; --bad-soft:#fdf0f0;
+  --r:18px; --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 30px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+.glow{position:fixed;pointer-events:none;border-radius:50%;z-index:0;filter:blur(10px)}
+.glow.a{width:70vmax;height:70vmax;top:-38vmax;right:-30vmax;background:radial-gradient(circle,rgba(255,138,40,.55) 0%,rgba(255,170,90,.28) 30%,rgba(255,200,150,.10) 50%,rgba(255,255,255,0) 68%)}
+.glow.b{width:50vmax;height:50vmax;bottom:-32vmax;left:-26vmax;background:radial-gradient(circle,rgba(255,160,80,.22) 0%,rgba(255,190,130,.08) 40%,rgba(255,255,255,0) 65%)}
+#app{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent}
+.syncbar{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 4px;color:var(--muted);font-size:14px}
+.syncbar b{color:var(--ink);font-weight:600}
+@media (hover:none){ .kbd{display:none} .opt:hover:not(:disabled){border-color:var(--line)} .opt.sel:hover{border-color:var(--or)} }
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:disabled{cursor:default;opacity:.4}
+code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--soft);padding:1px 6px;border-radius:6px}
+.row{display:flex;align-items:center;gap:12px}
+.spacer{flex:1}
+.muted{color:var(--muted)} .small{font-size:14px}
+/* Header */
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.01em}
+.dot{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--or-light),var(--or-deep));box-shadow:0 0 0 5px var(--or-soft)}
+h1{font-size:34px;letter-spacing:-.025em;line-height:1.15;margin:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:40px 0 14px}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .12s,background .15s,box-shadow .15s}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--or) 0%,var(--or-deep) 100%);color:#fff;box-shadow:0 6px 18px rgba(242,92,5,.25)}
+.btn.primary:hover:not(:disabled){box-shadow:0 8px 24px rgba(242,92,5,.35)}
+.btn.ghost{background:var(--soft)} .btn.ghost:hover:not(:disabled){background:#efeff0}
+.btn.line{border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--ink)} .btn.line:hover:not(:disabled){border-color:#d9d9db}
+.btn.text{padding:8px 10px;color:var(--muted);font-weight:500} .btn.text:hover{color:var(--ink)}
+.btn.danger{color:var(--bad)}
+.iconbtn{width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.8);border:1px solid var(--line)}
+.iconbtn:hover{border-color:#d4d4d6}
+/* Hero */
+.hero{display:flex;align-items:center;gap:28px;margin:34px 0 8px}
+.hero .stats{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+.stat b{display:block;font-size:22px;letter-spacing:-.02em}
+.stat span{font-size:13px;color:var(--muted)}
+/* Ring */
+.ring{position:relative;flex:none}
+.ring svg{display:block;transform:rotate(-90deg)}
+.ring .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:-.02em}
+.ring.done .lbl{color:var(--or-deep)}
+/* Module cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--r);padding:20px;text-align:left;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s,border-color .15s}
+button.card:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(0,0,0,.04),0 14px 36px rgba(0,0,0,.07)}
+.mcard{display:flex;flex-direction:column;gap:14px;width:100%}
+.mcard .t{font-weight:650;font-size:17px;line-height:1.3;letter-spacing:-.01em}
+.mcard .s{font-size:14px;color:var(--muted)}
+.addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:150px;border:1.5px dashed #dcdcde;background:rgba(255,255,255,.5);box-shadow:none;color:var(--muted);font-weight:500}
+.addcard:hover{border-color:var(--or);color:var(--or-deep)}
+.addcard .plus{width:40px;height:40px;border-radius:50%;background:var(--or-soft);color:var(--or-deep);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--muted)}
+/* Empty */
+.empty{text-align:center;padding:70px 10px 30px}
+.empty .big{width:84px;height:84px;margin:0 auto 26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--or-light),var(--or-deep));box-shadow:0 0 0 14px var(--or-soft),0 20px 50px rgba(242,92,5,.3)}
+.empty p{max-width:460px;margin:14px auto 28px;color:var(--muted)}
+/* Footer tools */
+.tools{display:flex;flex-wrap:wrap;gap:4px;margin-top:44px;padding-top:18px;border-top:1px solid var(--line)}
+/* Module view */
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.chlist{display:flex;flex-direction:column;gap:8px}
+.ch{display:flex;align-items:center;gap:16px;width:100%;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.85);border:1px solid var(--line);text-align:left;transition:border-color .15s,background .15s}
+.ch:hover{border-color:#ffd2b0;background:#fff}
+.ch .num{width:34px;height:34px;flex:none;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:650;font-size:14px;color:var(--muted)}
+.ch.done .num{background:linear-gradient(135deg,var(--or),var(--or-deep));color:#fff}
+.ch .body{flex:1;min-width:0}
+.ch .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .meta{font-size:13px;color:var(--muted)}
+.bar{height:6px;border-radius:99px;background:#f0f0f1;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--or-light),var(--or));transition:width .5s ease}
+.pct{width:48px;text-align:right;font-weight:650;font-size:15px;font-variant-numeric:tabular-nums}
+.ch.done .pct{color:var(--or-deep)}
+/* Quiz */
+.qtop{display:flex;align-items:center;gap:14px}
+.qtop .info{flex:1;min-width:0}
+.qtop .ctx{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qtop .bar{margin-top:6px;height:4px}
+.qcard{margin-top:26px;padding:30px}
+.qlabel{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--or-deep)}
+.streak{display:inline-flex;gap:4px;margin-left:auto}
+.streak i{width:8px;height:8px;border-radius:50%;background:#e6e6e8}
+.streak i.on{background:var(--or)}
+.qtext{font-size:22px;line-height:1.4;font-weight:600;letter-spacing:-.015em;margin:14px 0 6px}
+.hint{font-size:14px;color:var(--muted);margin-bottom:6px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.opt{display:flex;align-items:flex-start;gap:14px;width:100%;padding:15px 16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:#ffc79c}
+.opt .key{flex:none;width:28px;height:28px;border-radius:8px;border:1.5px solid #dedee0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;color:var(--muted);transition:all .12s}
+.opt.multi .key{border-radius:7px}
+.opt.single .key{border-radius:50%}
+.opt .otext{padding-top:2px}
+.opt.sel{border-color:var(--or);background:var(--or-soft)}
+.opt.sel .key{background:var(--or);border-color:var(--or);color:#fff}
+.opt:disabled{cursor:default;opacity:1}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .key{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .key{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.missed{border-color:var(--ok);border-style:dashed}
+.opt.missed .key{border-color:var(--ok);color:var(--ok)}
+.feedback{margin-top:22px;padding:16px 18px;border-radius:14px;font-size:15px}
+.feedback.ok{background:var(--ok-soft)} .feedback.bad{background:var(--bad-soft)}
+.feedback b{display:block;margin-bottom:4px}
+.feedback.ok b{color:var(--ok)} .feedback.bad b{color:var(--bad)}
+.qbar{display:flex;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap}
+.kbd{font-size:12px;color:var(--faint);margin-top:18px;text-align:center}
+/* Result */
+.result{text-align:center;padding:50px 10px}
+.result .ring{margin:0}
+.result.celebrate .gymrow .ring{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(255,122,26,0))}50%{filter:drop-shadow(0 0 22px rgba(255,122,26,.55))}}
+.result p{color:var(--muted);max-width:440px;margin:10px auto 26px}
+/* Modal */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(20,20,22,.28);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.modal{background:#fff;border-radius:22px;max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.2)}
+.modal h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.modal .slide{margin-top:18px}
+.modal .slide img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+.modal .slide .cap{font-size:13px;color:var(--muted);margin-top:6px}
+.modal textarea{width:100%;min-height:260px;margin-top:16px;padding:14px;border-radius:12px;border:1px solid var(--line);font:13px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;resize:vertical;background:var(--soft);color:var(--ink)}
+.ctxbox{margin-top:16px;padding:16px;border-radius:12px;background:var(--soft);font-size:15px}
+/* Drop + toast */
+.drop{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(255,244,235,.9);border:3px dashed var(--or);font-size:22px;font-weight:600;color:var(--or-deep)}
+.drop.show{display:flex}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:70;background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);animation:up .2s}
+@keyframes up{from{opacity:0;transform:translate(-50%,10px)}}
+.banner{margin-top:16px;padding:12px 16px;border-radius:12px;background:var(--bad-soft);color:var(--bad);font-size:14px}
+/* Hippo */
+.petcard{display:flex;align-items:center;gap:26px;margin-top:26px;padding:22px 26px}
+.petart{flex:none;position:relative}
+.hh{display:block;overflow:visible}
+.hh .hh-body{transform-origin:50% 90%;animation:bob 3.4s ease-in-out infinite}
+.hh.m-happy .hh-body{animation:hop 1.6s ease-in-out infinite}
+.hh.m-dead .hh-body{animation:float 4s ease-in-out infinite}
+.hh.m-sick .hh-body{animation:shiver .5s linear infinite}
+.hh.pop .hh-body{animation:pop .45s ease}
+@keyframes bob{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(1.5px) scaleY(.985)}}
+@keyframes hop{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(-9px)}85%{transform:translateY(0) scaleY(.96)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes shiver{0%,100%{transform:translateX(0)}50%{transform:translateX(.8px)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12) translateY(-4px)}100%{transform:scale(1)}}
+.petinfo{flex:1;min-width:0}
+.petname{display:flex;align-items:center;gap:6px;font-weight:700;font-size:18px;letter-spacing:-.01em}
+.petname .lvl{font-size:12px;font-weight:600;color:var(--or-deep);background:var(--or-soft);padding:3px 10px;border-radius:999px;margin-left:4px}
+.petname button{font-size:13px;color:var(--faint);padding:2px 6px;border-radius:6px}
+.petname button:hover{color:var(--or-deep);background:var(--or-soft)}
+.bubble{position:relative;display:inline-block;margin:8px 0 14px;padding:10px 14px;border-radius:14px;background:var(--or-soft);font-size:15px;line-height:1.4;max-width:100%}
+.bubble:before{content:"";position:absolute;left:-7px;top:14px;border:7px solid transparent;border-left:0;border-right-color:var(--or-soft)}
+.bubble.sad{background:#f3f3f5}.bubble.sad:before{border-right-color:#f3f3f5}
+.petstats{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.flame{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.flame b{font-size:22px;color:var(--ink);letter-spacing:-.02em}
+.daily{flex:1;min-width:180px}
+.daily .lbl{font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+.daily .bar{margin-top:5px}
+.week{display:flex;gap:10px;margin-top:14px}
+.week div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--faint)}
+.week i{width:14px;height:14px;border-radius:50%;background:#efeff1}
+.week i.on{background:linear-gradient(135deg,var(--or-light),var(--or-deep))}
+.week i.today{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--or-light)}
+.qpet{flex:none;margin:-30px -10px -26px 0;display:flex;flex-direction:column;align-items:center}
+.reps{font-size:11px;color:var(--muted);margin-top:-6px;white-space:nowrap}.reps b{color:var(--or-deep);font-size:13px}
+.curl{transform-box:view-box;transform-origin:46px 158px}
+.hh.still .hh-body{animation:none}
+.refresh{display:flex;align-items:center;gap:16px;margin-top:22px;padding:16px 20px;background:linear-gradient(135deg,#fff 0%,var(--or-soft) 100%);box-shadow:none}
+.refresh .rtext{flex:1}
+.duetxt{color:var(--or-deep)}
+.duetag{font-size:11px;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:var(--or-soft);color:var(--or-deep);margin-left:auto}
+.duetag + .streak{margin-left:10px}
+@media (max-width:560px){.refresh{flex-direction:column;align-items:flex-start}}
+.m-train .curl{animation:curl 2.4s ease-in-out infinite}
+.m-train.sync .curl,.m-train.sync .curl.r2{animation:curl var(--p,.9s) ease-in-out infinite;animation-delay:0s}
+.m-train.sync .hh-body{animation:pump var(--p,.9s) ease-in-out infinite}
+.gymrow{justify-content:center;gap:26px;margin-bottom:18px;align-items:center}
+.gym{position:relative;display:flex;flex-direction:column;align-items:center;padding:6px 18px 0;border-radius:28px;background:radial-gradient(ellipse at 50% 85%,rgba(255,150,70,.20),rgba(255,255,255,0) 70%)}
+.repcount{margin-top:-4px;font-size:14px;color:var(--muted)}
+.repcount b{font-size:28px;color:var(--or-deep);letter-spacing:-.02em;margin-right:3px;font-variant-numeric:tabular-nums}
+.repcount.bump{animation:bump .3s ease}
+@keyframes bump{50%{transform:scale(1.18)}}
+.m-train .curl.r2{animation-delay:-1.2s}
+.m-rep .curl{animation:curl .8s ease-in-out 2}
+.m-rep .curl.r2{animation-delay:.12s}
+@keyframes curl{0%,12%{transform:rotate(0)}48%,62%{transform:rotate(-140deg)}100%{transform:rotate(0)}}
+.m-train .hh-body{animation:pump 1.2s ease-in-out infinite}
+@keyframes pump{0%,100%{transform:translateY(0)}50%{transform:translateY(1.5px) scaleY(.99)}}
+.m-rep .hh-body{animation:hop .8s ease-in-out 2}
+.m-fail .hh-body{animation:wobble .5s ease 1}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(3deg)}}
+.plus1{animation:plus1 1.4s ease-out forwards}
+@keyframes plus1{0%{opacity:0;transform:translateY(8px)}20%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+.drip{animation:drip 2.4s ease-in infinite}
+@keyframes drip{0%,40%{opacity:0;transform:translateY(0)}55%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.choicecard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:20px}
+.choicecard:hover{border-color:#ffc79c}
+.choicecard b{font-size:17px}.choicecard span{font-size:14px;color:var(--muted)}
+.cicon{width:46px;height:46px;border-radius:14px;background:var(--or-soft);color:var(--or-deep);display:flex!important;align-items:center;justify-content:center;margin-bottom:6px}
+.steps{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.sn{flex:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--or),var(--or-deep));color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+@media (max-width:560px){.choice{grid-template-columns:1fr}}
+.goalchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.goalchips button{padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);font-weight:600;font-size:14px}
+.goalchips button.on{border-color:var(--or);background:var(--or-soft);color:var(--or-deep)}
+.field{width:100%;margin-top:8px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font:inherit}
+.field:focus{outline:none;border-color:var(--or)}
+.grave{margin-top:6px;font-size:14px;color:var(--muted)}
+.celebrate-pet{text-align:center}
+@media (max-width:560px){.petcard{flex-direction:column;align-items:flex-start;gap:6px;padding:18px}.bubble:before{display:none}}
+
+@media (max-width:560px){
+  #app{padding-top:calc(18px + env(safe-area-inset-top))}
+  .qbar{position:sticky;bottom:0;z-index:5;margin:18px -18px -22px;padding:14px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(rgba(255,255,255,0),#fff 22%);border-radius:0 0 18px 18px}
+  .qbar{flex-wrap:nowrap}
+  .qbar .spacer{display:none}
+  .qbar .lg{display:none}
+  .qbar .btn.ghost{padding:12px 16px;font-size:15px;flex:none}
+  .qbar .btn.primary{flex:1;padding:13px 14px;white-space:nowrap}
+  .qpet svg{width:84px;height:84px}
+  .qpet{margin:-18px -4px -16px 0}
+  .opt{padding:14px}
+  .gymrow{gap:10px}.gym svg{width:150px;height:150px}.gymrow .ring svg{width:104px;height:104px}.gymrow .ring{width:104px!important;height:104px!important}
+  .tools{justify-content:flex-start}
+  h1{font-size:27px} .qtext{font-size:19px} .qcard{padding:22px 18px} .hero{gap:18px}
+  .hero .ring svg{width:96px;height:96px}
+}
+</style>
+</head>
+<body>
+<div class="glow a"></div><div class="glow b"></div>
+<div id="app"></div>
+<div class="drop" id="drop">Moduldatei hier ablegen</div>
+<input type="file" id="fileModule" multiple hidden>
+<input type="file" id="fileBackup" hidden>
+<script>
+"use strict";
+const DEMO_MODULE = {"format": "lernapp-modul", "version": 1, "id": "demo-grundlagen-informatik", "title": "Demo: Grundlagen der Informatik", "subtitle": "Beispielmodul zum Ausprobieren", "updated": "2026-09-20", "sections": [{"id": "vl", "title": "Vorlesungen", "chapters": [{"id": "vl01", "title": "Zahlensysteme", "questions": [{"id": "vl01-q01", "type": "single", "question": "Welchen Dezimalwert hat die Binärzahl `1011`?", "options": [{"text": "11", "correct": true}, {"text": "13", "correct": false}, {"text": "9", "correct": false}, {"text": "1011", "correct": false}], "explanation": "1011₂ = 8 + 0 + 2 + 1 = 11.", "slides": ["vl01-s03"], "context": "Stellenwertsysteme: Jede Ziffer wird mit einer Potenz der Basis multipliziert. Im Binärsystem (Basis 2) sind die Stellenwerte von rechts nach links 1, 2, 4, 8, … Beispiel: 1101₂ = 8 + 4 + 0 + 1 = 13."}, {"id": "vl01-q02", "type": "multi", "question": "Welche Aussagen über das Hexadezimalsystem sind richtig?", "options": [{"text": "Es hat die Basis 16.", "correct": true}, {"text": "Es verwendet die Ziffern 0–9 und A–F.", "correct": true}, {"text": "Eine Hex-Ziffer entspricht genau 4 Bit.", "correct": true}, {"text": "FF₁₆ entspricht 256₁₀.", "correct": false}], "explanation": "FF₁₆ = 15·16 + 15 = 255, nicht 256. Die anderen drei Aussagen stimmen.", "slides": ["vl01-s05"], "context": "Hexadezimalsystem: Basis 16, Ziffern 0–9 und A–F (A=10 … F=15). Eine Hex-Ziffer entspricht genau 4 Bit. FF₁₆ = 255₁₀."}, {"id": "vl01-q03", "type": "single", "question": "Wie viele verschiedene Werte lassen sich mit 8 Bit darstellen?", "options": [{"text": "256", "correct": true}, {"text": "255", "correct": false}, {"text": "128", "correct": false}, {"text": "8", "correct": false}], "explanation": "Mit n Bit gibt es 2ⁿ Kombinationen, also 2⁸ = 256. Der größte vorzeichenlose Wert ist 255.", "slides": ["vl01-s04"], "context": "Mit n Bit lassen sich 2ⁿ verschiedene Werte darstellen. 8 Bit = 1 Byte → 256 Werte. Vorzeichenlos reicht der Bereich von 0 bis 2ⁿ − 1."}, {"id": "vl01-q04", "type": "single", "question": "Was ist das Zweierkomplement von `0101` (4 Bit)?", "options": [{"text": "1011", "correct": true}, {"text": "1010", "correct": false}, {"text": "1101", "correct": false}, {"text": "0101", "correct": false}], "explanation": "Invertieren ergibt 1010, plus 1 ergibt 1011. Das ist −5 im 4-Bit-Zweierkomplement.", "slides": ["vl01-s06"], "context": "Zweierkomplement: Um eine Zahl zu negieren, werden alle Bits invertiert und anschließend 1 addiert. Bei 4 Bit reicht der Wertebereich von −8 bis +7."}, {"id": "vl01-q05", "type": "multi", "question": "Welche Zahlen sind im 4-Bit-Zweierkomplement darstellbar?", "options": [{"text": "−8", "correct": true}, {"text": "7", "correct": true}, {"text": "8", "correct": false}, {"text": "−9", "correct": false}], "explanation": "Der Bereich ist −2³ bis 2³ − 1, also −8 bis +7.", "slides": ["vl01-s06"], "context": "Zweierkomplement mit n Bit: Wertebereich von −2ⁿ⁻¹ bis 2ⁿ⁻¹ − 1. Bei 4 Bit also −8 bis +7."}]}, {"id": "vl02", "title": "Sortierverfahren", "questions": [{"id": "vl02-q01", "type": "single", "question": "Welche Laufzeit hat Bubble Sort im schlechtesten Fall?", "options": [{"text": "O(n²)", "correct": true}, {"text": "O(n log n)", "correct": false}, {"text": "O(n)", "correct": false}, {"text": "O(log n)", "correct": false}], "explanation": "Im Worst Case (umgekehrt sortiert) wird jedes Paar verglichen und getauscht: etwa n²/2 Schritte.", "slides": ["vl02-s02"], "context": "Bubble Sort vergleicht benachbarte Elemente und tauscht sie, falls nötig. Worst Case: O(n²). Das Verfahren ist stabil und arbeitet in-place."}, {"id": "vl02-q02", "type": "multi", "question": "Welche Sortierverfahren arbeiten nach dem Prinzip „Teile und herrsche“?", "options": [{"text": "Merge Sort", "correct": true}, {"text": "Quick Sort", "correct": true}, {"text": "Insertion Sort", "correct": false}, {"text": "Bubble Sort", "correct": false}], "explanation": "Merge Sort und Quick Sort zerlegen das Problem rekursiv. Insertion und Bubble Sort arbeiten iterativ.", "slides": ["vl02-s04"], "context": "Teile und herrsche: Problem in Teilprobleme zerlegen, diese rekursiv lösen und die Teillösungen zusammenfügen. Beispiele: Merge Sort (immer O(n log n)), Quick Sort (im Mittel O(n log n), Worst Case O(n²))."}, {"id": "vl02-q03", "type": "single", "question": "Was bedeutet es, dass ein Sortierverfahren **stabil** ist?", "options": [{"text": "Gleiche Elemente behalten ihre ursprüngliche Reihenfolge.", "correct": true}, {"text": "Es terminiert bei jeder Eingabe.", "correct": false}, {"text": "Es benötigt keinen zusätzlichen Speicher.", "correct": false}, {"text": "Seine Laufzeit ist immer gleich.", "correct": false}], "explanation": "Stabilität bezieht sich auf die Reihenfolge gleicher Schlüssel. „Kein Zusatzspeicher“ heißt in-place.", "slides": ["vl02-s05"], "context": "Stabilität: Elemente mit gleichem Schlüssel behalten ihre relative Reihenfolge. Wichtig beim Sortieren nach mehreren Kriterien. Stabile Verfahren: Merge Sort, Insertion Sort, Bubble Sort."}, {"id": "vl02-q04", "type": "single", "question": "Welche Worst-Case-Laufzeit hat Merge Sort?", "options": [{"text": "O(n log n)", "correct": true}, {"text": "O(n²)", "correct": false}, {"text": "O(n)", "correct": false}, {"text": "O(2ⁿ)", "correct": false}], "explanation": "Merge Sort halbiert immer (log n Ebenen) und mischt pro Ebene in O(n). Das gilt auch im Worst Case.", "slides": ["vl02-s04"], "context": "Merge Sort teilt die Liste immer in zwei Hälften und mischt sie sortiert zusammen. Laufzeit in jedem Fall O(n log n)."}, {"id": "vl02-q05", "type": "single", "question": "Bubble Sort (aufsteigend) macht einen vollständigen Durchlauf über `[5, 1, 4, 2]`. Wo steht danach die 5?", "options": [{"text": "Am Ende der Liste", "correct": true}, {"text": "Am Anfang der Liste", "correct": false}, {"text": "An zweiter Stelle", "correct": false}, {"text": "Sie bleibt, wo sie ist", "correct": false}], "explanation": "Die 5 wird bei jedem Vergleich nach rechts getauscht: [1, 4, 2, 5].", "slides": ["vl02-s03"], "context": "Bubble Sort: Das größte Element „blubbert“ in jedem Durchlauf nach hinten. Nach Durchlauf i sind die letzten i Elemente sortiert. Beispiel: [5,1,4,2] → [1,4,2,5]."}]}]}, {"id": "sem", "title": "Seminare", "chapters": [{"id": "s01", "title": "Übung Zahlensysteme", "questions": [{"id": "s01-q01", "type": "single", "question": "Wandle die Dezimalzahl 25 in eine Binärzahl um.", "options": [{"text": "11001", "correct": true}, {"text": "10011", "correct": false}, {"text": "11010", "correct": false}, {"text": "10101", "correct": false}], "explanation": "25 = 16 + 8 + 1, also 11001₂. Mit der Restwertmethode: Reste 1,0,0,1,1 von unten gelesen.", "slides": ["s01-s02"], "context": "Restwertmethode: Die Dezimalzahl fortlaufend durch 2 teilen und die Reste notieren. Die Reste von unten nach oben gelesen ergeben die Binärzahl."}, {"id": "s01-q02", "type": "single", "question": "Welche Hexadezimalzahl entspricht der Binärzahl `1111 0010`?", "options": [{"text": "F2", "correct": true}, {"text": "2F", "correct": false}, {"text": "E2", "correct": false}, {"text": "F3", "correct": false}], "explanation": "In 4er-Gruppen: 1111 = F, 0010 = 2, also F2.", "slides": ["s01-s02"], "context": "Hex ↔ Binär: Die Binärzahl von rechts in 4er-Gruppen teilen und jede Gruppe in eine Hex-Ziffer umrechnen."}, {"id": "s01-q03", "type": "multi", "question": "Welche Umrechnungen sind korrekt?", "options": [{"text": "0x1A = 26", "correct": true}, {"text": "100₂ = 4", "correct": true}, {"text": "0x10 = 10", "correct": false}, {"text": "111₂ = 8", "correct": false}], "explanation": "0x10 = 16 und 111₂ = 7. Die anderen beiden stimmen.", "slides": ["s01-s02", "vl01-s05"], "context": "Hex: 0x1A = 1·16 + 10 = 26. Binär: 100₂ = 4, 111₂ = 7. 0x10 = 16."}]}]}], "slides": {"vl01-s03": {"label": "VL 1 · Folie 3", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5TdGVsbGVud2VydHN5c3RlbWU8L3RleHQ+CjxnIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIj48Y2lyY2xlIGN4PSIxMTIiIGN5PSIyNDAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjI1MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+SmVkZSBaaWZmZXIgw5cgUG90ZW56IGRlciBCYXNpczwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzMTAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjMyMCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+Qmluw6RyOiBCYXNpcyAyIOKGkiBTdGVsbGVud2VydGUgOCwgNCwgMiwgMTwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzODAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjM5MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+QmVpc3BpZWw6IDExMDHigoIgPSA4ICsgNCArIDAgKyAxID0gMTM8L3RleHQ+PC9nPgo8dGV4dCB4PSI5MCIgeT0iNjcwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZmlsbD0iIzk5OSI+RGVtby1Gb2xpZSDCtyBWTCAxIMK3IEZvbGllIDM8L3RleHQ+PC9zdmc+"}, "vl01-s04": {"label": "VL 1 · Folie 4", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5CaXRzIHVuZCBXZXJ0ZWJlcmVpY2g8L3RleHQ+CjxnIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIj48Y2lyY2xlIGN4PSIxMTIiIGN5PSIyNDAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjI1MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+biBCaXQg4oaSIDLigb8gdmVyc2NoaWVkZW5lIFdlcnRlPC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjMxMCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzIwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj44IEJpdCA9IDEgQnl0ZSDihpIgMjU2IFdlcnRlPC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjM4MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzkwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5Wb3J6ZWljaGVubG9zOiAwIGJpcyAy4oG/IOKIkiAxPC90ZXh0PjwvZz4KPHRleHQgeD0iOTAiIHk9IjY3MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM5OTkiPkRlbW8tRm9saWUgwrcgVkwgMSDCtyBGb2xpZSA0PC90ZXh0Pjwvc3ZnPg=="}, "vl01-s05": {"label": "VL 1 · Folie 5", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5IZXhhZGV6aW1hbHN5c3RlbTwvdGV4dD4KPGcgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiPjxjaXJjbGUgY3g9IjExMiIgY3k9IjI0MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMjUwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5CYXNpcyAxNiwgWmlmZmVybiAw4oCTOSB1bmQgQeKAk0Y8L3RleHQ+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMzEwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIzMjAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPjEgSGV4LVppZmZlciA9IGdlbmF1IDQgQml0PC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjM4MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzkwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5GRuKCgeKChiA9IDI1NeKCgeKCgDwvdGV4dD48L2c+Cjx0ZXh0IHg9IjkwIiB5PSI2NzAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjIyIiBmaWxsPSIjOTk5Ij5EZW1vLUZvbGllIMK3IFZMIDEgwrcgRm9saWUgNTwvdGV4dD48L3N2Zz4="}, "vl01-s06": {"label": "VL 1 · Folie 6", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5ad2VpZXJrb21wbGVtZW50PC90ZXh0Pgo8ZyBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMjQwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIyNTAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPk5lZ2llcmVuOiBhbGxlIEJpdHMgaW52ZXJ0aWVyZW4sIGRhbm4gKyAxPC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjMxMCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzIwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj40IEJpdDogV2VydGViZXJlaWNoIOKIkjggYmlzICs3PC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjM4MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzkwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5BbGxnZW1laW46IOKIkjLigb/igbvCuSBiaXMgMuKBv+KBu8K5IOKIkiAxPC90ZXh0PjwvZz4KPHRleHQgeD0iOTAiIHk9IjY3MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM5OTkiPkRlbW8tRm9saWUgwrcgVkwgMSDCtyBGb2xpZSA2PC90ZXh0Pjwvc3ZnPg=="}, "vl02-s02": {"label": "VL 2 · Folie 2", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5CdWJibGUgU29ydDwvdGV4dD4KPGcgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiPjxjaXJjbGUgY3g9IjExMiIgY3k9IjI0MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMjUwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5CZW5hY2hiYXJ0ZSBFbGVtZW50ZSB2ZXJnbGVpY2hlbiAmYW1wOyB0YXVzY2hlbjwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzMTAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjMyMCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+V29yc3QgQ2FzZTogTyhuwrIpPC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjM4MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzkwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5TdGFiaWwsIGFyYmVpdGV0IGluLXBsYWNlPC90ZXh0PjwvZz4KPHRleHQgeD0iOTAiIHk9IjY3MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM5OTkiPkRlbW8tRm9saWUgwrcgVkwgMiDCtyBGb2xpZSAyPC90ZXh0Pjwvc3ZnPg=="}, "vl02-s03": {"label": "VL 2 · Folie 3", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5CdWJibGUgU29ydCDigJMgQWJsYXVmPC90ZXh0Pgo8ZyBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMjQwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIyNTAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPkdyw7bDn3RlcyBFbGVtZW50IOKAnmJsdWJiZXJ04oCcIG5hY2ggaGludGVuPC90ZXh0PjxjaXJjbGUgY3g9IjExMiIgY3k9IjMxMCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMzIwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5OYWNoIER1cmNobGF1ZiBpOiBsZXR6dGUgaSBFbGVtZW50ZSBzb3J0aWVydDwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzODAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjM5MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+QmVpc3BpZWw6IFs1LDEsNCwyXSDihpIgWzEsNCwyLDVdPC90ZXh0PjwvZz4KPHRleHQgeD0iOTAiIHk9IjY3MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM5OTkiPkRlbW8tRm9saWUgwrcgVkwgMiDCtyBGb2xpZSAzPC90ZXh0Pjwvc3ZnPg=="}, "vl02-s04": {"label": "VL 2 · Folie 4", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5UZWlsZSB1bmQgaGVycnNjaGU8L3RleHQ+CjxnIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIj48Y2lyY2xlIGN4PSIxMTIiIGN5PSIyNDAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjI1MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+UHJvYmxlbSB0ZWlsZW4sIFRlaWxlIGzDtnNlbiwgenVzYW1tZW5mw7xnZW48L3RleHQ+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMzEwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIzMjAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPk1lcmdlIFNvcnQ6IGltbWVyIE8obiBsb2cgbik8L3RleHQ+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMzgwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIzOTAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPlF1aWNrIFNvcnQ6IGltIE1pdHRlbCBPKG4gbG9nIG4pLCBXb3JzdCBPKG7Csik8L3RleHQ+PC9nPgo8dGV4dCB4PSI5MCIgeT0iNjcwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZmlsbD0iIzk5OSI+RGVtby1Gb2xpZSDCtyBWTCAyIMK3IEZvbGllIDQ8L3RleHQ+PC9zdmc+"}, "vl02-s05": {"label": "VL 2 · Folie 5", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5TdGFiaWxpdMOkdDwvdGV4dD4KPGcgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiPjxjaXJjbGUgY3g9IjExMiIgY3k9IjI0MCIgcj0iNyIgZmlsbD0iI2ZmN2ExYSIvPjx0ZXh0IHg9IjE0MCIgeT0iMjUwIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIj5TdGFiaWwgPSBnbGVpY2hlIFNjaGzDvHNzZWwgYmVoYWx0ZW4gUmVpaGVuZm9sZ2U8L3RleHQ+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMzEwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIzMjAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPldpY2h0aWcgYmVpbSBTb3J0aWVyZW4gbmFjaCBtZWhyZXJlbiBLcml0ZXJpZW48L3RleHQ+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMzgwIiByPSI3IiBmaWxsPSIjZmY3YTFhIi8+PHRleHQgeD0iMTQwIiB5PSIzOTAiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiPlN0YWJpbDogTWVyZ2UsIEluc2VydGlvbiwgQnViYmxlPC90ZXh0PjwvZz4KPHRleHQgeD0iOTAiIHk9IjY3MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiM5OTkiPkRlbW8tRm9saWUgwrcgVkwgMiDCtyBGb2xpZSA1PC90ZXh0Pjwvc3ZnPg=="}, "s01-s02": {"label": "Seminar 1 · Folie 2", "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgdmlld0JveD0iMCAwIDEyODAgNzIwIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjZmZmIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMSIgY3k9IjAiIHI9IjAuNiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY5YTNjIiBzdG9wLW9wYWNpdHk9Ii4zNSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjgwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSIjZmY3YTFhIi8+Cjx0ZXh0IHg9IjkwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjUyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWQxZDFmIj5SZXN0d2VydG1ldGhvZGU8L3RleHQ+CjxnIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIj48Y2lyY2xlIGN4PSIxMTIiIGN5PSIyNDAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjI1MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+WmFobCBmb3J0bGF1ZmVuZCBkdXJjaCAyIHRlaWxlbjwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzMTAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjMyMCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+UmVzdGUgdm9uIHVudGVuIG5hY2ggb2JlbiBsZXNlbjwvdGV4dD48Y2lyY2xlIGN4PSIxMTIiIGN5PSIzODAiIHI9IjciIGZpbGw9IiNmZjdhMWEiLz48dGV4dCB4PSIxNDAiIHk9IjM5MCIgZm9udC1zaXplPSIzNCIgZmlsbD0iIzMzMyI+SGV4IOKGlCBCaW7DpHI6IGluIDRlci1HcnVwcGVuIHVtcmVjaG5lbjwvdGV4dD48L2c+Cjx0ZXh0IHg9IjkwIiB5PSI2NzAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjIyIiBmaWxsPSIjOTk5Ij5EZW1vLUZvbGllIMK3IFNlbWluYXIgMSDCtyBGb2xpZSAyPC90ZXh0Pjwvc3ZnPg=="}}};
+const MASTER = 3;          // so oft in Folge richtig = gemeistert
+const SESSION_SIZE = 15;   // Fragen pro Lerneinheit
+const EXAM_SIZE = 20;
+
+/* ---------- Speicher (IndexedDB) ---------- */
+const DB = {
+  db:null,
+  open(){ return new Promise((res,rej)=>{
+    const r = indexedDB.open("lernapp",2);
+    r.onupgradeneeded = ()=>{ const d=r.result; for(const n of ["modules","progress","meta"]) if(!d.objectStoreNames.contains(n)) d.createObjectStore(n); };
+    r.onsuccess = ()=>{ this.db=r.result; res(); };
+    r.onerror = ()=>rej(r.error);
+  });},
+  put(store,key,val){ if(!this.db) return Promise.resolve(); return new Promise((res,rej)=>{
+    const t=this.db.transaction(store,"readwrite"); t.objectStore(store).put(val,key);
+    t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); });},
+  del(store,key){ if(!this.db) return Promise.resolve(); return new Promise((res,rej)=>{
+    const t=this.db.transaction(store,"readwrite"); t.objectStore(store).delete(key);
+    t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); });},
+  all(store){ if(!this.db) return Promise.resolve([]); return new Promise((res,rej)=>{
+    const out=[]; const t=this.db.transaction(store,"readonly");
+    const c=t.objectStore(store).openCursor();
+    c.onsuccess=()=>{ const cur=c.result; if(cur){ out.push([cur.key,cur.value]); cur.continue(); } };
+    t.oncomplete=()=>res(out); t.onerror=()=>rej(t.error); });}
+};
+
+/* ---------- Zustand ---------- */
+const S = { pet:null, modules:new Map(), progress:{}, view:{name:"home"}, session:null, storageOk:true };
+const $app = document.getElementById("app");
+
+/* ---------- Hilfsfunktionen ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = s => esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+const plain = s => String(s ?? "").replace(/\*\*/g,"");
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const LETTERS = "ABCDEFGHIJ";
+function toast(msg){ document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3200); }
+
+function qp(modId,qid){ const p=S.progress[modId]||(S.progress[modId]={}); return p[qid]||{s:0,c:0,w:0}; }
+const REFRESH_DAYS=[14,30,60]; // nach so vielen Tagen ohne Wiederholung wird eine gemeisterte Frage zur Auffrischung fällig
+function isDue(p){ return p.s>=MASTER && !!p.t && (Date.now()-p.t) > REFRESH_DAYS[Math.min(p.r||0,REFRESH_DAYS.length-1)]*864e5; }
+function effS(modId,qid){ const p=qp(modId,qid); return isDue(p) ? MASTER-1 : Math.min(p.s,MASTER); }
+function dueItems(mod,chId){ return allItems(mod).filter(x=>(!chId||x.ch.id===chId) && isDue(qp(mod.id,x.q.id))); }
+function setQp(modId,qid,v){ (S.progress[modId]||(S.progress[modId]={}))[qid]=v; DB.put("progress",modId,S.progress[modId]).catch(()=>{}); }
+
+function chapterStats(modId,ch){
+  const n=ch.questions.length; let pts=0, mastered=0;
+  for(const q of ch.questions){ const s=effS(modId,q.id); pts+=s; if(s>=MASTER) mastered++; }
+  return { n, mastered, pct: n? pts/(n*MASTER) : 0 };
+}
+function moduleStats(mod){
+  let n=0, pts=0, mastered=0, chapters=0;
+  for(const sec of mod.sections) for(const ch of sec.chapters){ chapters++;
+    for(const q of ch.questions){ n++; const s=effS(mod.id,q.id); pts+=s; if(s>=MASTER) mastered++; } }
+  return { n, mastered, chapters, pct: n? pts/(n*MASTER) : 0 };
+}
+function allItems(mod){ const out=[]; for(const sec of mod.sections) for(const ch of sec.chapters) for(const q of ch.questions) out.push({q,ch,sec}); return out; }
+const pctTxt = p => Math.floor(p*100+1e-9)+" %";
+
+function ring(p,size=64,stroke=6,label=true){
+  const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-p), id="g"+Math.random().toString(36).slice(2,8);
+  const fs = size>=100 ? Math.round(size*.22) : Math.round(size*.25);
+  return `<div class="ring ${p>=1?"done":""}" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb066"/><stop offset="1" stop-color="#f25c05"/></linearGradient></defs>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#f0f0f1" stroke-width="${stroke}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="url(#${id})" stroke-width="${stroke}" stroke-linecap="round"
+        stroke-dasharray="${c}" stroke-dashoffset="${p<=0?c:off}" style="transition:stroke-dashoffset .6s ease"/>
+    </svg>${label?`<div class="lbl" style="font-size:${fs}px">${Math.floor(p*100+1e-9)}<span style="font-size:.55em;margin-left:1px">%</span></div>`:""}</div>`;
+}
+
+/* ---------- Hippo ---------- */
+const PET_NAMES=["Hugo","Bruno","Knödel","Gustav","Pummel","Otto","Frieda","Bizeps-Bernd","Moppel"];
+const LEVELS=[{min:0,name:"Couch-Hippo"},{min:3,name:"Freizeitsportler"},{min:7,name:"Athlet"},{min:15,name:"Kraftpaket"},{min:30,name:"Olympia-Hippo"}];
+const pad=n=>String(n).padStart(2,"0");
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyToDate=k=>{const[y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);};
+const addDays=(k,n)=>{const d=keyToDate(k);d.setDate(d.getDate()+n);return dayKey(d);};
+const daysBetween=(a,b)=>Math.round((keyToDate(b)-keyToDate(a))/864e5);
+const newPet=(name="Hugo",old)=>({kind:"hippo",name,born:dayKey(),goal:old?.goal||10,days:old?.days||{},best:0,diedOn:null,graveyard:old?.graveyard||[]});
+function savePet(){ DB.put("meta","pet",S.pet).catch(()=>{}); }
+const plural=(n,a,b)=>`${n} ${n===1?a:b}`;
+
+function petStatus(){
+  const P=S.pet, t=dayKey();
+  let streak=0, d=P.days[t]?.done?t:addDays(t,-1);
+  while(d>=P.born && P.days[d]?.done){ streak++; d=addDays(d,-1); }
+  const done=Object.keys(P.days).filter(k=>k>=P.born&&P.days[k].done).sort();
+  const last=done[done.length-1]||null;
+  const gap=daysBetween(last||P.born,t);
+  let mood;
+  if(P.diedOn) mood="dead";
+  else if(last===t) mood="happy";
+  else if(!last) mood= gap>=4?"dead":gap===3?"sick":gap===2?"sad":"hungry";
+  else mood= gap<=1?"hungry":gap===2?"sad":gap===3?"sick":"dead";
+  if(mood==="dead" && !P.diedOn){ P.diedOn=t; savePet(); }
+  if(streak>P.best){ P.best=streak; savePet(); }
+  const trained=done.length;
+  let level=1; LEVELS.forEach((l,i)=>{ if(trained>=l.min) level=i+1; });
+  const nextL=LEVELS[level]||null;
+  return {streak,mood,today:P.days[t]?.n||0,goal:P.goal,best:P.best,trained,level,levelName:LEVELS[level-1].name,
+    next:nextL?{name:nextL.name,left:nextL.min-trained}:null};
+}
+function recordAnswer(){
+  const P=S.pet, t=dayKey(), day=P.days[t]||(P.days[t]={n:0,done:false});
+  const before=petStatus().level;
+  day.n++; let reached=false;
+  if(!day.done && day.n>=P.goal){ day.done=true; reached=!P.diedOn; }
+  savePet();
+  if(reached){ const st=petStatus();
+    toast(st.level>before ? `Level up! ${P.name} ist jetzt ${st.levelName}.` : `Training geschafft! ${P.name} wird stärker · ${plural(st.streak,"Tag","Tage")} Serie`); }
+  return reached;
+}
+function petMessage(st){
+  const n=esc(S.pet.name), rest=Math.max(st.goal-st.today,0);
+  switch(st.mood){
+    case "happy": return st.streak>=7?`${n} ist on fire: ${st.streak} Tage Training am Stück!`:`Training erledigt! ${n} ist ausgepowert und glücklich.`;
+    case "hungry": return `Heute schon trainiert? ${n} wartet im Gym – noch ${plural(rest,"Frage","Fragen")}${st.streak>0?", dann hält deine Serie":""}.`;
+    case "sad": return `${n} hat gestern umsonst im Gym gewartet … Die Serie ist weg, aber heute geht's weiter.`;
+    case "sick": return `${n} hängt schlapp auf der Couch. Trainier heute, sonst ist es zu spät!`;
+    case "dead": return `${n} ist in den Hippo-Himmel gewandert. Rekord: ${plural(S.pet.best,"Tag","Tage")} Serie.`;
+  }
+}
+
+function mascot(mood="idle",size=140,{level=1,cls=""}={}){
+  const ink="#3b3558";
+  const main = mood==="sick"?"#aebda6":"#aaa5d6", shade= mood==="sick"?"#98a992":"#9590c6", light= mood==="sick"?"#cbd6c4":"#cfcbee", snout= mood==="sick"?"#bccab5":"#bdb8e4";
+  const E={
+    open:x=>`<circle cx="${x}" cy="62" r="6.5" fill="${ink}"/><circle cx="${x+2.3}" cy="59.6" r="2.3" fill="#fff"/>`,
+    happy:x=>`<path d="M${x-7} 64 Q${x} 55 ${x+7} 64" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`,
+    sad:x=>`<circle cx="${x}" cy="64" r="5.5" fill="${ink}"/><circle cx="${x+2}" cy="62" r="2" fill="#fff"/>`,
+    sleepy:x=>`<path d="M${x-7} 62 Q${x} 67 ${x+7} 62" fill="none" stroke="${ink}" stroke-width="3.5" stroke-linecap="round"/>`,
+    big:x=>`<circle cx="${x}" cy="61" r="8.5" fill="${ink}"/><circle cx="${x+3}" cy="58" r="3" fill="#fff"/>`,
+    x:x=>`<path d="M${x-6} 56 L${x+6} 68 M${x+6} 56 L${x-6} 68" stroke="${ink}" stroke-width="3.5" stroke-linecap="round"/>`
+  };
+  const Mo={
+    smile:`<path d="M86 106 Q100 115 114 106" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`,
+    open:`<path d="M84 103 Q100 124 116 103 Z" fill="#7a2e3a"/><rect x="91" y="103" width="7" height="6" rx="1.5" fill="#fff"/><rect x="102" y="103" width="7" height="6" rx="1.5" fill="#fff"/><path d="M92 115 Q100 119 108 115" fill="#ff8fa0"/>`,
+    flat:`<path d="M89 108 Q100 110 111 107" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`,
+    frown:`<path d="M87 112 Q100 103 113 112" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`,
+    o:`<ellipse cx="100" cy="108" rx="5" ry="6.5" fill="${ink}"/>`,
+    grit:`<rect x="89" y="102" width="22" height="9" rx="3.5" fill="#fff" stroke="${ink}" stroke-width="2.2"/><path d="M96.3 102v9M103.7 102v9" stroke="${ink}" stroke-width="1.4"/>`,
+    wavy:`<path d="M84 108 q4 -4 8 0 t8 0 t8 0 t8 0" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`
+  };
+  const M={idle:["open","smile"],happy:["happy","open"],cheer:["happy","open"],hungry:["open","flat"],sad:["sad","frown"],
+    sick:["sleepy","wavy"],dead:["x","frown"],surprised:["big","o"],train:["open","grit"],rep:["happy","open"],fail:["big","o"],gym:["open","smile"],gymok:["happy","open"],gymfail:["big","o"]}[mood]||["open","smile"];
+  const training=["train","rep","fail","gym","gymok","gymfail"].includes(mood), still=mood.startsWith("gym");
+  const lv = mood==="dead"?1:level;
+  const m = [1,1,1,1.1,1.35,1.6][lv];
+  // Arme
+  const armDown = `<ellipse cx="52" cy="150" rx="11" ry="20" transform="rotate(22 52 150)" fill="${shade}"/>`;
+  const flexArm = `
+    ${lv>=4?`<g><rect x="4" y="${84-2}" width="52" height="7" rx="3" fill="#8b8b94"/><rect x="2" y="${84-12}" width="10" height="27" rx="3" fill="#4a4a55"/><rect x="48" y="${84-12}" width="10" height="27" rx="3" fill="#4a4a55"/></g>`:""}
+    <ellipse cx="44" cy="132" rx="19" ry="${11*m}" fill="${shade}"/>
+    <ellipse cx="29" cy="108" rx="${10*m}" ry="21" transform="rotate(-8 29 108)" fill="${shade}"/>
+    <circle cx="44" cy="${126-2*m}" r="${9*m}" fill="${main}"/>
+    <path d="M${40} ${122-2*m} q4 -${4*m} ${8} 0" stroke="#fff" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/>
+    <circle cx="30" cy="86" r="${11*Math.min(m,1.3)}" fill="${shade}"/>
+    <rect x="${19-3*(m-1)}" y="95" width="${22+6*(m-1)}" height="8" rx="3" fill="#ff7a1a" transform="rotate(-8 30 99)"/>`;
+  const bell=(x,y,rot=0)=>`<g transform="rotate(${rot} ${x} ${y})"><rect x="${x-16}" y="${y-2.5}" width="32" height="5" rx="2" fill="#8b8b94"/><rect x="${x-20}" y="${y-10}" width="8" height="20" rx="2.5" fill="#4a4a55"/><rect x="${x+12}" y="${y-10}" width="8" height="20" rx="2.5" fill="#4a4a55"/></g>`;
+  const curlArm=(r2)=>`
+    <ellipse cx="51" cy="144" rx="${10*m}" ry="17" transform="rotate(14 51 144)" fill="${shade}"/>
+    ${m>1?`<circle cx="53" cy="142" r="${6*m}" fill="${main}"/>`:""}
+    ${mood==="fail"
+      ? `<ellipse cx="46" cy="170" rx="${8.5*m}" ry="13" fill="${shade}"/><circle cx="46" cy="182" r="${7.5*Math.min(m,1.3)}" fill="${shade}"/>`
+      : `<g class="curl ${r2?"r2":""}"><ellipse cx="46" cy="170" rx="${8.5*m}" ry="13" fill="${shade}"/>${bell(46,184)}<circle cx="46" cy="184" r="${7.5*Math.min(m,1.3)}" fill="${shade}"/>${lv>=3?`<rect x="${39-2*(m-1)}" y="174" width="${14+4*(m-1)}" height="5" rx="2" fill="#ff7a1a"/>`:""}</g>`}`;
+  const arms = training ? `${curlArm(false)}<g transform="translate(200 0) scale(-1 1)">${curlArm(true)}</g>${mood==="fail"?bell(26,193,-8)+bell(176,194,6):""}`
+    : (lv>=3||mood==="cheer") ? `${flexArm}<g transform="translate(200 0) scale(-1 1)">${lv>=5?flexArm:flexArm.replace(/<g><rect[\s\S]*?<\/g>/,"")}</g>`
+                     : `${armDown}<g transform="translate(200 0) scale(-1 1)">${armDown}</g>`;
+  // Extras
+  let extra="";
+  if(mood==="happy"||mood==="cheer") extra+=`<path d="M28 34 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3z" fill="#ffb066"/><path d="M172 24 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 l6 -2z" fill="#ff7a1a"/>`;
+  if(mood==="train") extra+=`<path d="M74 51 L90 55 M110 55 L126 51" stroke="${ink}" stroke-width="3" stroke-linecap="round"/><path class="drip" d="M146 46 q-4 8 0 10 q4 -2 0 -10z" fill="#79bdf2"/>`;
+  if(mood==="gymok") extra+=`<text class="plus1" x="146" y="42" font-size="24" font-weight="800" fill="#f25c05" font-family="sans-serif">+1</text>`;
+  if(mood==="gymfail") extra+=`<path d="M142 44 q-5 9 0 12 q5 -3 0 -12z" fill="#79bdf2"/>`;
+  if(mood==="rep") extra+=`<text class="plus1" x="150" y="40" font-size="22" font-weight="800" fill="#f25c05" font-family="sans-serif">+1</text><path d="M28 34 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3z" fill="#ffb066"/>`;
+  if(mood==="fail") extra+=`<path d="M142 44 q-5 9 0 12 q5 -3 0 -12z" fill="#79bdf2"/><path d="M58 40 q-4 8 0 10 q4 -2 0 -10z" fill="#79bdf2"/><text x="150" y="30" font-size="16" font-weight="800" fill="#b9b9c0" font-family="sans-serif">uff!</text>`;
+  if(mood==="cheer") extra+=`<path d="M150 40 q-5 9 0 12 q5 -3 0 -12z" fill="#79bdf2"/>`;
+  if(mood==="sad") extra+=`<path d="M78 70 q-4 8 0 11 q4 -3 0 -11z" fill="#79bdf2"/><path d="M76 53 L91 49 M109 49 L124 53" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`;
+  if(mood==="sick") extra+=`<text x="146" y="30" font-size="20" font-weight="700" fill="#b9b9c0" font-family="sans-serif">z</text><text x="162" y="16" font-size="14" font-weight="700" fill="#c9c9cf" font-family="sans-serif">z</text><path d="M140 54 q-5 9 0 12 q5 -3 0 -12z" fill="#79bdf2"/>`;
+  if(mood==="hungry") extra+=`<circle cx="146" cy="44" r="3" fill="#ffd1b0"/><circle cx="155" cy="33" r="4.5" fill="#ffd1b0"/><circle cx="176" cy="18" r="15" fill="#fff" stroke="#ffd1b0" stroke-width="2"/><rect x="168" y="10" width="16" height="16" rx="2" fill="#ff7a1a"/><rect x="175" y="10" width="2" height="16" fill="#fff" opacity=".7"/>`;
+  // Accessoires nach Level
+  let acc="";
+  if(mood!=="dead"){
+    if(lv>=2) acc+=`<path d="M62 50 Q100 33 138 50 L136 58 Q100 42 64 58Z" fill="#ff7a1a"/><path d="M136 52 l14 -4 l-3 9z" fill="#f25c05"/>`;
+    if(lv>=5) acc+=`<path d="M86 118 L100 140 L114 118" stroke="#ff7a1a" stroke-width="6" fill="none" stroke-linejoin="round"/><circle cx="100" cy="146" r="11" fill="#f5b83d" stroke="#e09a1c" stroke-width="2"/><path d="M100 140 l2 4 l4 .5 l-3 3 l1 4 l-4 -2 l-4 2 l1 -4 l-3 -3 l4 -.5z" fill="#fff" opacity=".8"/>`;
+  }
+  const halo = mood==="dead"?`<ellipse cx="100" cy="20" rx="34" ry="8" fill="none" stroke="#f5b83d" stroke-width="4"/>`:"";
+  return `<svg class="hh m-${mood} ${still?"still":""} ${cls}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Hippo">
+    ${halo}
+    <g class="hh-body" ${mood==="dead"?'opacity=".55"':""}>
+      <ellipse cx="100" cy="194" rx="62" ry="5" fill="#000" opacity=".06"/>
+      <ellipse cx="74" cy="182" rx="17" ry="11" fill="${shade}"/><ellipse cx="126" cy="182" rx="17" ry="11" fill="${shade}"/>
+      <path d="M66 186 q2 3 4 0 M74 187 q2 3 4 0 M122 187 q2 3 4 0 M130 186 q2 3 4 0" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/>
+      <ellipse cx="100" cy="146" rx="${50+4*(m-1)}" ry="42" fill="${main}"/>
+      <ellipse cx="100" cy="156" rx="33" ry="27" fill="${light}"/>
+      ${arms}
+      <circle cx="66" cy="38" r="10" fill="${shade}"/><circle cx="66" cy="39" r="4.5" fill="#f3a6b6"/>
+      <circle cx="134" cy="38" r="10" fill="${shade}"/><circle cx="134" cy="39" r="4.5" fill="#f3a6b6"/>
+      <ellipse cx="100" cy="72" rx="48" ry="40" fill="${main}"/>
+      <ellipse cx="100" cy="94" rx="44" ry="27" fill="${snout}"/>
+      <ellipse cx="86" cy="86" rx="4.5" ry="3.2" fill="#5b5680"/><ellipse cx="114" cy="86" rx="4.5" ry="3.2" fill="#5b5680"/>
+      ${mood!=="dead"&&mood!=="sick"?`<ellipse cx="70" cy="96" rx="7" ry="4" fill="#ff8fa8" opacity=".55"/><ellipse cx="130" cy="96" rx="7" ry="4" fill="#ff8fa8" opacity=".55"/>`:""}
+      ${E[M[0]](84)}${E[M[0]](116)}${Mo[M[1]]}${acc}${extra}
+    </g></svg>`;
+}
+function flameIcon(on){
+  return `<svg width="22" height="26" viewBox="0 0 22 26"><defs><linearGradient id="fl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f25c05"/><stop offset="1" stop-color="#ffb066"/></linearGradient></defs>
+  <path d="M11 1 C13 7 20 9 20 16 A9 9 0 0 1 2 16 C2 11 6 9 7 5 C9 8 9 10 10 11 C11 8 12 5 11 1Z" fill="${on?"url(#fl)":"#dcdcdf"}"/>
+  <path d="M11 13 C12 16 15 17 15 20 A4 4 0 0 1 7 20 C7 18 9 17 11 13Z" fill="#fff" opacity="${on?.55:.7}"/></svg>`;
+}
+function petCard(){
+  const st=petStatus(), P=S.pet;
+  const wd=["So","Mo","Di","Mi","Do","Fr","Sa"], t=dayKey();
+  const week=Array.from({length:7},(_,i)=>{const k=addDays(t,i-6);return `<div><i class="${P.days[k]?.done&&k>=P.born?"on":""} ${k===t?"today":""}"></i>${wd[keyToDate(k).getDay()]}</div>`;}).join("");
+  const dead=st.mood==="dead";
+  return `<div class="card petcard">
+    <div class="petart">${mascot(st.mood,150,{level:st.level})}</div>
+    <div class="petinfo">
+      <div class="petname">${esc(P.name)}<span class="lvl">Level ${st.level} · ${st.levelName}</span><button data-a="petsettings" title="Hippo & Tagesziel">✎</button></div>
+      <div class="bubble ${["sad","sick","dead"].includes(st.mood)?"sad":""}">${petMessage(st)}</div>
+      ${dead?`<div><button class="btn primary" data-a="adopt">Neues Hippo adoptieren</button></div>`:`
+      <div class="petstats">
+        <div class="flame">${flameIcon(st.streak>0)}<b>${st.streak}</b>${st.streak===1?"Tag":"Tage"} Serie${P.best>st.streak?` · Rekord ${P.best}`:""}</div>
+        <div class="daily"><div class="lbl"><span>Heutiges Training</span><span>${Math.min(st.today,st.goal)} / ${st.goal} Fragen</span></div><div class="bar"><i style="width:${Math.min(st.today/st.goal,1)*100}%"></i></div></div>
+      </div>
+      <div class="row" style="margin-top:14px;gap:18px;flex-wrap:wrap"><div class="week">${week}</div>
+        <div class="small muted">${st.next?`Noch ${plural(st.next.left,"Trainingstag","Trainingstage")} bis <b style="color:var(--ink)">${st.next.name}</b>`:`Maximale Stärke erreicht – Goldmedaille!`}</div></div>`}
+    </div></div>`;
+}
+function petSettings(adopt=false){
+  const P=S.pet, st=petStatus();
+  const name=adopt?PET_NAMES[Math.floor(Math.random()*PET_NAMES.length)]:P.name;
+  const graves=P.graveyard.length?`<h2 style="margin:22px 0 6px">Hippo-Friedhof</h2>${P.graveyard.map(g=>`<div class="grave">† ${esc(g.name)} · ${esc(g.level||"")} · Rekord ${plural(g.best,"Tag","Tage")} · ${esc(g.died)}</div>`).join("")}`:"";
+  const levels=LEVELS.map((l,i)=>`<span class="chip" style="${!adopt&&st.level===i+1?"background:var(--or-soft);color:var(--or-deep);font-weight:600":""}">${i+1}. ${l.name}${l.min?` · ab ${l.min}`:""}</span>`).join("");
+  modal(`<div class="row"><h3>${adopt?"Neues Hippo adoptieren":"Dein Hippo"}</h3><div class="spacer"></div><button class="iconbtn" data-a="close" aria-label="Schließen">✕</button></div>
+    <div style="text-align:center;margin:6px 0 0">${mascot(adopt?"happy":"idle",140,{level:adopt?1:st.level})}</div>
+    <label class="small muted">Name</label><input class="field" id="petName" value="${esc(name)}" maxlength="24">
+    <div class="small muted" style="margin-top:18px">Tagesziel: So viele Fragen am Tag sind ein Trainingstag.</div>
+    <div class="goalchips">${[5,10,20,30].map(g=>`<button data-a="goal" data-g="${g}" class="${P.goal===g?"on":""}">${g}</button>`).join("")}</div>
+    <div class="small muted" style="margin-top:18px">Je mehr Trainingstage, desto stärker wird es:</div>
+    <div class="chips" style="margin-top:8px">${levels}</div>
+    <p class="small muted" style="margin-top:16px">Verpasst du einen Tag, ist es traurig und die Serie ist weg. Nach zwei Tagen hängt es schlapp auf der Couch, nach drei wandert es in den Hippo-Himmel – und mit ihm alle Muskeln.</p>
+    ${adopt?"":graves}
+    <div class="row" style="justify-content:flex-end;margin-top:20px"><button class="btn primary" data-a="${adopt?"adoptsave":"petsave"}">${adopt?"Adoptieren":"Speichern"}</button></div>`);
+}
+
+/* ---------- Module importieren ---------- */
+function validate(m){
+  if(!m || typeof m!=="object") throw new Error("Keine gültige Datei.");
+  if(m.format!=="lernapp-modul") throw new Error("Das ist keine LernApp-Moduldatei.");
+  if(!m.id || !m.title || !Array.isArray(m.sections)) throw new Error("Modul unvollständig (id, title oder sections fehlt).");
+  for(const sec of m.sections) for(const ch of sec.chapters||[]) for(const q of ch.questions||[]){
+    if(!q.id || !Array.isArray(q.options) || (q.type!=="klausur" && !q.options.some(o=>o.correct))) throw new Error(`Frage ohne ID oder richtige Antwort in „${ch.title}“.`);
+  }
+  m.slides = m.slides || {};
+}
+function mergeModules(old,neu){
+  const out={...old,...neu,sections:old.sections.map(s=>({...s,chapters:s.chapters.slice()})),slides:{...(old.slides||{}),...(neu.slides||{})}};
+  for(const ns of neu.sections){
+    let s=out.sections.find(x=>x.id===ns.id);
+    if(!s){ out.sections.push({...ns,chapters:ns.chapters.slice()}); continue; }
+    s.title=ns.title||s.title;
+    for(const nc of ns.chapters){ const i=s.chapters.findIndex(c=>c.id===nc.id); if(i>=0) s.chapters[i]=nc; else s.chapters.push(nc); }
+    s.chapters.sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true}));
+  }
+  return out;
+}
+async function importModule(m){
+  validate(m);
+  const old = S.modules.get(m.id);
+  if(old) m = mergeModules(old,m);
+  S.modules.set(m.id,m);
+  await DB.put("modules",m.id,m).catch(()=>{ S.storageOk=false; });
+  if(old){
+    const ids = new Set(allItems(old).map(x=>x.q.id));
+    const added = allItems(m).filter(x=>!ids.has(x.q.id)).length;
+    toast(`„${m.title}“ aktualisiert${added?` · ${added} neue Fragen`:""}. Fortschritt bleibt erhalten.`);
+  } else toast(`„${m.title}“ hinzugefügt.`);
+}
+async function importFiles(files){
+  for(const f of files){
+    try{ await importModule(JSON.parse(await f.text())); }
+    catch(e){ toast(`${f.name}: ${e.message}`); }
+  }
+  render();
+}
+async function connectFolder(){
+  try{
+    const dir = await window.showDirectoryPicker({mode:"read"});
+    let n=0;
+    for await (const entry of dir.values()){
+      if(entry.kind==="file" && /\.(lernmodul|json)$/i.test(entry.name)){
+        try{ const m=JSON.parse(await (await entry.getFile()).text()); if(m.format==="lernapp-modul"){ await importModule(m); n++; } }catch(e){}
+      }
+    }
+    toast(n? `${n} Modul${n>1?"e":""} aus dem Ordner geladen.` : "Keine Moduldateien im Ordner gefunden.");
+    render();
+  }catch(e){ if(e.name!=="AbortError") toast("Ordner konnte nicht gelesen werden."); }
+}
+
+/* ---------- Backup ---------- */
+function download(name,text){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));
+  a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+const BACKUP_NAME="LernApp-Fortschritt.json";
+function setSynced(){ S.sync={last:Date.now()}; DB.put("meta","sync",S.sync).catch(()=>{}); }
+function sinceTxt(ts){ if(!ts) return "noch nie"; const d=daysBetween(dayKey(new Date(ts)),dayKey()); return d<=0?"heute":d===1?"gestern":`vor ${d} Tagen`; }
+async function exportBackup(){
+  const text=JSON.stringify({format:"lernapp-backup",version:2,date:new Date().toISOString(),progress:S.progress,pet:S.pet});
+  const isTouch=matchMedia("(hover: none)").matches;
+  try{
+    const file=new File([text],BACKUP_NAME,{type:"application/json"});
+    if(isTouch && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:"LernApp-Fortschritt"});
+      setSynced(); toast("Gesichert. Tipp: „In Dateien sichern“ → iCloud Drive, alte Datei ersetzen."); render(); return;
+    }
+  }catch(e){ if(e.name==="AbortError") return; }
+  download(BACKUP_NAME,text); setSynced();
+  toast("Fortschritt gesichert – am besten in iCloud Drive ablegen."); render();
+}
+function mergePet(inc){
+  if(!inc||!inc.days) return;
+  const P=S.pet;
+  for(const [k,d] of Object.entries(inc.days)){ const l=P.days[k]; P.days[k]= l?{n:Math.max(l.n||0,d.n||0),done:!!(l.done||d.done)}:d; }
+  if(inc.kind==="hippo" && !inc.diedOn && !P.diedOn && inc.born<=P.born){ P.born=inc.born; P.name=inc.name||P.name; }
+  if(inc.goal) P.goal=inc.goal;
+  P.best=Math.max(P.best||0,inc.best||0);
+  const g=new Set(P.graveyard.map(x=>x.name+x.died));
+  for(const x of inc.graveyard||[]) if(!g.has(x.name+x.died)) P.graveyard.push(x);
+  savePet();
+}
+async function importBackup(file){
+  try{
+    const b=JSON.parse(await file.text());
+    if(b.format!=="lernapp-backup") throw new Error("Keine Fortschrittsdatei.");
+    let changed=0;
+    for(const [mid,p] of Object.entries(b.progress||{})){
+      const local=S.progress[mid]||(S.progress[mid]={});
+      for(const [qid,v] of Object.entries(p)){ const l=local[qid]; if(!l || (v.t||0)>(l.t||0)){ local[qid]=v; changed++; } }
+      await DB.put("progress",mid,local).catch(()=>{});
+    }
+    mergePet(b.pet); setSynced();
+    toast(changed?`Fortschritt zusammengeführt · ${changed} Fragen aktualisiert.`:"Alles schon auf dem neuesten Stand."); render();
+  }catch(e){ toast(e.message); }
+}
+
+/* ---------- Sessions ---------- */
+function startSession(kind,modId,chId){
+  const mod=S.modules.get(modId); const items=allItems(mod); let pool, title;
+  if(kind==="chapter"){
+    const sub=items.filter(x=>x.ch.id===chId); title=sub[0]?.ch.title||"";
+    const open=sub.filter(x=>effS(modId,x.q.id)<MASTER);
+    pool = open.length ? shuffle(open).sort((a,b)=>effS(modId,a.q.id)-effS(modId,b.q.id)).slice(0,SESSION_SIZE) : shuffle(sub);
+  } else if(kind==="mistakes"){
+    title="Fehler wiederholen";
+    pool=shuffle(items.filter(x=>{const p=qp(modId,x.q.id);return p.w>0&&p.s<MASTER;})).slice(0,SESSION_SIZE);
+  } else if(kind==="refresh"){
+    title="Auffrischen"; pool=shuffle(dueItems(mod)).slice(0,SESSION_SIZE);
+  } else {
+    title="Prüfungssimulation"; pool=shuffle(items).slice(0,EXAM_SIZE);
+  }
+  if(!pool.length){ toast("Keine passenden Fragen."); return; }
+  S.session={kind,modId,chId,title,queue:pool,idx:0,requeued:new Set(),right:0,total:0,
+    startPct: kind==="chapter" ? chapterStats(modId,mod.sections.flatMap(s=>s.chapters).find(c=>c.id===chId)).pct : moduleStats(mod).pct};
+  newQuestionState(); S.view={name:"quiz"}; render(); window.scrollTo(0,0);
+}
+function newQuestionState(){
+  const it=S.session.queue[S.session.idx];
+  S.session.cur={ order:shuffle(it.q.options.map((_,i)=>i)), sel:new Set(), checked:false, hint:false, correct:null, due:isDue(qp(S.session.modId,it.q.id)) };
+}
+function toggleOpt(i){
+  const cur=S.session.cur; if(cur.checked) return;
+  const q=S.session.queue[S.session.idx].q;
+  if(q.type==="multi"||q.type==="klausur"){ cur.sel.has(i)?cur.sel.delete(i):cur.sel.add(i); }
+  else { cur.sel.clear(); cur.sel.add(i); }
+  render();
+}
+function check(){
+  const ss=S.session, cur=ss.cur, it=ss.queue[ss.idx], q=it.q;
+  if(cur.checked || (!cur.sel.size && q.type!=="klausur")) return;
+  const correctSet=q.options.map((o,i)=>o.correct?i:-1).filter(i=>i>=0);
+  const ok = correctSet.length===cur.sel.size && correctSet.every(i=>cur.sel.has(i));
+  cur.checked=true; cur.correct=ok; ss.total++;
+  const p={...qp(ss.modId,q.id)};
+  if(!(ok && cur.hint && cur.due)) p.t=Date.now();   // mit Folienhilfe zählt eine Auffrischung nicht
+  if(ok){ ss.right++; p.c++; if(!cur.hint){ if(cur.due){ p.s=MASTER; p.r=(p.r||0)+1; } else p.s=Math.min(p.s+1,MASTER); } }
+  else { p.w++; p.s=0; if(!ss.requeued.has(q.id) && ss.kind!=="exam"){ ss.requeued.add(q.id); ss.queue.push(it); } }
+  setQp(ss.modId,q.id,p); cur.goalReached=recordAnswer(); if(cur.goalReached) ss.goalReached=true; render();
+  if(innerWidth<=560) requestAnimationFrame(()=>document.querySelector(".feedback")?.scrollIntoView({block:"center",behavior:"smooth"}));
+}
+function next(){
+  const ss=S.session;
+  if(ss.idx+1>=ss.queue.length){ S.view={name:"result"}; render(); window.scrollTo(0,0); return; }
+  ss.idx++; newQuestionState(); render(); window.scrollTo(0,0);
+}
+
+/* ---------- Modul hinzufügen: Auswahl, KI-Prompt, Einfügen ---------- */
+function addChooser(){
+  modal(`<div class="row"><h3>Modul hinzufügen</h3><div class="spacer"></div><button class="iconbtn" data-a="close" aria-label="Schließen">✕</button></div>
+    <p class="small muted" style="margin:6px 0 0">Wie möchtest du das Modul hinzufügen?</p>
+    <div class="choice">
+      <button class="card choicecard" data-a="addfile">
+        <span class="cicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15l3-3 3 3"/></svg></span>
+        <b>Aus Datei</b><span>Eine fertige <code>.lernmodul</code>-Datei laden, z. B. von einem Freund.</span></button>
+      <button class="card choicecard" data-a="addprompt">
+        <span class="cicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span>
+        <b>Per Prompt</b><span>Eine KI erstellt das Modul aus deinen Folien und PDFs.</span></button>
+    </div>
+    <div class="row small muted" style="margin-top:14px;flex-wrap:wrap;gap:4px 14px">
+      <span>Tipp: Dateien kannst du auch einfach ins Fenster ziehen.</span>
+      ${"showDirectoryPicker" in window?`<button class="btn text" style="padding:4px 0" data-a="folder">Ganzen Modulordner verbinden</button>`:""}
+    </div>`);
+}
+function modulePrompt(){
+  const today=dayKey();
+  return `Du hilfst mir, ein Lernmodul für meine LernApp zu erstellen.
+
+KURZ ZUR APP
+Die LernApp funktioniert wie eine Führerschein-Lern-App: Man beantwortet Multiple-Choice-Fragen, sortiert nach Kapiteln (Vorlesungen und Seminare). Eine Frage gilt als gemeistert, wenn man sie 3× hintereinander richtig beantwortet. Ziel sind 100 %. Zu jeder Frage kann man sich den passenden Folieninhalt ansehen und eine Erklärung bekommen. Ein Modul wird als JSON in die App geladen.
+
+DEIN ABLAUF
+1. Frag mich zuerst, wie das Modul heißt (und optional Semester/Dozent). Bitte mich dann, meine Vorlesungsfolien, PDFs oder Skripte hochzuladen. Warte, bis ich sie geschickt habe. Erstelle vorher noch nichts.
+2. Erstelle aus den Unterlagen pro Vorlesung bzw. Seminar ein Kapitel mit 15–25 Fragen. Decke die prüfungsrelevanten Inhalte ab (Definitionen, Zusammenhänge, Anwendungs- und Rechenaufgaben). Keine Fragen zu Organisatorischem.
+3. Gib das Ergebnis als JSON in genau einem \`\`\`json-Codeblock aus, exakt im Format unten, ohne Kommentare im JSON.
+4. Wenn es zu lang wird, arbeite kapitelweise: Gib jeweils ein vollständiges JSON mit derselben Modul-"id" und nur den neuen Kapiteln aus. Die App fügt die Teile automatisch zusammen. Frag mich danach, ob du mit dem nächsten Kapitel weitermachen sollst.
+
+REGELN FÜR DIE FRAGEN
+- "type": "single" (genau eine richtige Antwort) oder "multi" (mehrere richtig). Gut mischen, ca. 70 % single.
+- Sonderfall Klausurformat: Wenn in der Klausur „keine, eine, mehrere oder alle Antworten richtig“ sein können, nimm für alle Fragen "type": "klausur" (0–4 richtige Antworten, auch mal keine oder alle).
+- Immer 4 Antwortmöglichkeiten. Falsche Antworten sollen plausibel sein (typische Denkfehler), nicht offensichtlich falsch.
+- "explanation": 1–2 Sätze, warum die richtige Antwort stimmt.
+- "context": der relevante Inhalt aus den Folien (300–800 Zeichen), möglichst nah am Original. Er wird angezeigt, wenn ich nicht weiterkomme.
+- "source": wo das steht, z. B. "VL 3, Folie 12–14".
+- IDs eindeutig und stabil: Kapitel "vl01", "vl02", … bzw. "sem01", …; Fragen "vl01-q01", "vl01-q02", …
+- Code in \`Backticks\`, Hervorhebungen mit **fett**.
+- Alles auf Deutsch (Fachbegriffe wie in den Folien).
+
+FORMAT
+\`\`\`json
+{
+  "format": "lernapp-modul",
+  "version": 1,
+  "id": "kurzer-modulname-ohne-leerzeichen",
+  "title": "Name des Moduls",
+  "subtitle": "z. B. WiSe 2026/27",
+  "updated": "${today}",
+  "sections": [
+    { "id": "vl", "title": "Vorlesungen", "chapters": [
+      { "id": "vl01", "title": "Titel der Vorlesung", "questions": [
+        { "id": "vl01-q01", "type": "single",
+          "question": "Frage?",
+          "options": [
+            { "text": "Antwort A", "correct": true },
+            { "text": "Antwort B", "correct": false },
+            { "text": "Antwort C", "correct": false },
+            { "text": "Antwort D", "correct": false } ],
+          "explanation": "Warum A stimmt.",
+          "context": "Relevanter Folieninhalt …",
+          "source": "VL 1, Folie 5" }
+      ] }
+    ] },
+    { "id": "sem", "title": "Seminare", "chapters": [] }
+  ],
+  "slides": {}
+}
+\`\`\`
+
+Bitte starte jetzt mit Schritt 1.`;
+}
+function addPrompt(){
+  const t=modulePrompt(), enc=encodeURIComponent(t);
+  modal(`<div class="row"><h3>Modul per Prompt erstellen</h3><div class="spacer"></div><button class="iconbtn" data-a="close" aria-label="Schließen">✕</button></div>
+    <div class="steps">
+      <div class="step"><span class="sn">1</span><div><b>Prompt an eine KI geben</b><div class="small muted">Die KI erklärt sich kurz und fragt dich dann nach deinen Folien.</div></div></div>
+      <div class="step"><span class="sn">2</span><div><b>Folien und PDFs hochladen</b><div class="small muted">Die KI erstellt daraus das Modul, bei Bedarf kapitelweise.</div></div></div>
+      <div class="step"><span class="sn">3</span><div><b>Antwort hier einfügen</b><div class="small muted">Einfach die ganze Antwort kopieren, die App findet das Modul darin.</div></div></div>
+    </div>
+    <textarea id="promptText" spellcheck="false" style="min-height:160px">${esc(t)}</textarea>
+    <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px">
+      <button class="btn primary" data-a="copy">Prompt kopieren</button>
+      <a class="btn line" href="https://claude.ai/new?q=${enc}" target="_blank" rel="noopener" style="text-decoration:none">In Claude öffnen</a>
+      <a class="btn line" href="https://chatgpt.com/?q=${enc}" target="_blank" rel="noopener" style="text-decoration:none">In ChatGPT öffnen</a>
+    </div>
+    <h2 style="margin:26px 0 8px">Antwort der KI einfügen</h2>
+    <textarea id="pasteText" spellcheck="false" style="min-height:120px;margin-top:0" placeholder="Hier die Antwort mit dem JSON-Codeblock einfügen …"></textarea>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" data-a="pasteimport">Modul übernehmen</button></div>`);
+}
+function extractModules(text){
+  const out=[]; const re=/```(?:json)?\s*([\s\S]*?)```/g; let m;
+  while((m=re.exec(text))) out.push(m[1]);
+  if(!out.length){ const a=text.indexOf("{"), b=text.lastIndexOf("}"); if(a>=0&&b>a) out.push(text.slice(a,b+1)); }
+  const mods=[];
+  for(const s of out){ try{ const o=JSON.parse(s.trim()); if(o&&o.format==="lernapp-modul") mods.push(o); }catch(e){} }
+  return mods;
+}
+async function pasteImport(){
+  const text=document.getElementById("pasteText").value;
+  const mods=extractModules(text);
+  if(!mods.length){ toast("Kein gültiges Modul gefunden. Hast du den ganzen JSON-Block kopiert?"); return; }
+  let ok=0;
+  for(const m of mods){ try{ await importModule(m); ok++; }catch(e){ toast(e.message); } }
+  if(ok){ closeModal(); render(); }
+}
+
+/* ---------- Hilfe: Folie & KI-Prompt ---------- */
+function showSlides(){
+  const ss=S.session, it=ss.queue[ss.idx], mod=S.modules.get(ss.modId);
+  if(!ss.cur.checked) ss.cur.hint=true;
+  const imgs=(it.q.slides||[]).map(id=>mod.slides[id]).filter(Boolean);
+  const body = imgs.length
+    ? imgs.map(s=>`<div class="slide"><img src="${s.img}" alt="${esc(s.label)}"><div class="cap">${esc(s.label)}</div></div>`).join("")
+    : (it.q.context ? `<div class="ctxbox">${fmt(it.q.context)}</div>${it.q.source?`<div class="small muted" style="margin-top:6px">${esc(it.q.source)}</div>`:""}` : `<p class="muted">Zu dieser Frage ist keine Folie hinterlegt.</p>`);
+  modal(`<div class="row"><h3>Aus der Vorlesung</h3><div class="spacer"></div><button class="iconbtn" data-a="close" aria-label="Schließen">✕</button></div>
+    ${!ss.cur.checked?`<p class="small muted" style="margin:6px 0 0">Schau dir die Folie an und versuch es dann selbst. Richtig beantwortet zählt diesmal nicht für den Fortschritt, damit die 100 % ehrlich bleiben.</p>`:""}
+    ${body}`);
+  render();
+}
+function buildPrompt(){
+  const ss=S.session, it=ss.queue[ss.idx], q=it.q, mod=S.modules.get(ss.modId), cur=ss.cur;
+  const opts=cur.order.map((oi,k)=>`${LETTERS[k]}) ${plain(q.options[oi].text)}`).join("\n");
+  const letterOf=oi=>LETTERS[cur.order.indexOf(oi)];
+  const right=q.options.map((o,i)=>o.correct?i:-1).filter(i=>i>=0).map(letterOf).sort().join(", ");
+  const mine=[...cur.sel].map(letterOf).sort().join(", ");
+  const labels=(q.slides||[]).map(id=>mod.slides[id]?.label).filter(Boolean).join(", ")||q.source||"";
+  let t=`Ich lerne gerade für das Uni-Modul „${mod.title}“ (${it.sec.title}: ${it.ch.title}). Bei folgender Multiple-Choice-Frage komme ich nicht weiter:\n\n`;
+  t+=`Frage: ${plain(q.question)}\n${q.type==="multi"?"(Mehrere Antworten können richtig sein.)\n":q.type==="klausur"?"(Klausurformat: keine, eine, mehrere oder alle Antworten können richtig sein.)\n":""}\nAntwortmöglichkeiten:\n${opts}\n\n`;
+  if(cur.checked){
+    t+=`Meine Antwort: ${mine||"keine angekreuzt"}\nRichtige Antwort: ${right||"keine – alle Aussagen sind falsch"}\n`;
+    if(q.explanation) t+=`Kurze Begründung aus der Lern-App: ${plain(q.explanation)}\n`;
+    t+="\n";
+  }
+  if(q.context) t+=`Das steht dazu in der Vorlesung${labels?` (${labels})`:""}:\n"""\n${plain(q.context)}\n"""\n\n`;
+  if(cur.checked){
+    t+=`Bitte erkläre mir:\n1. den thematischen Hintergrund verständlich und in eigenen Worten,\n2. warum die richtige Antwort stimmt,\n3. warum die anderen Antworten falsch sind${mine&&!cur.correct?` (vor allem, wo mein Denkfehler bei ${mine} liegt)`:""},\n4. ein kurzes, anschauliches Beispiel.\nBezieh dich dabei auf den Vorlesungsinhalt und halte es kompakt.`;
+  } else {
+    t+=`Ich habe noch nicht geantwortet. Bitte verrate mir die Lösung noch NICHT. Erkläre mir stattdessen den thematischen Hintergrund und gib mir einen Denkanstoß, mit dem ich selbst auf die Antwort komme.`;
+  }
+  return t;
+}
+function showPrompt(){
+  const t=buildPrompt(); const enc=encodeURIComponent(t);
+  modal(`<div class="row"><h3>KI fragen</h3><div class="spacer"></div><button class="iconbtn" data-a="close" aria-label="Schließen">✕</button></div>
+    <p class="small muted" style="margin:6px 0 0">Der Prompt ist fertig. Kopiere ihn in eine KI deiner Wahl oder öffne ihn direkt.</p>
+    <textarea id="promptText" spellcheck="false">${esc(t)}</textarea>
+    <div class="row" style="margin-top:14px;flex-wrap:wrap;gap:8px">
+      <button class="btn primary" data-a="copy">Prompt kopieren</button>
+      <a class="btn line" href="https://claude.ai/new?q=${enc}" target="_blank" rel="noopener" style="text-decoration:none">In Claude öffnen</a>
+      <a class="btn line" href="https://chatgpt.com/?q=${enc}" target="_blank" rel="noopener" style="text-decoration:none">In ChatGPT öffnen</a>
+    </div>`);
+}
+async function copyPrompt(){
+  const ta=document.getElementById("promptText"); const t=ta.value;
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){ ta.select(); document.execCommand("copy"); }
+  toast("Prompt kopiert.");
+}
+
+/* ---------- Modal ---------- */
+let modalConfirm=null;
+function modal(html){ closeModal(); const o=document.createElement("div"); o.className="overlay"; o.id="overlay";
+  o.innerHTML=`<div class="modal" role="dialog">${html}</div>`;
+  o.addEventListener("click",e=>{ if(e.target===o) closeModal(); }); document.body.appendChild(o); }
+function closeModal(){ document.getElementById("overlay")?.remove(); }
+function confirmBox(title,text,label,fn){
+  modalConfirm=fn;
+  modal(`<h3>${esc(title)}</h3><p class="muted">${esc(text)}</p>
+    <div class="row" style="justify-content:flex-end;margin-top:20px"><button class="btn ghost" data-a="close">Abbrechen</button><button class="btn primary" data-a="confirm">${esc(label)}</button></div>`);
+}
+
+/* ---------- Ansichten ---------- */
+function vHome(){
+  const mods=[...S.modules.values()];
+  const tools=`<div class="tools">
+      <button class="btn text" data-a="add">＋ Modul hinzufügen</button>
+      ${"showDirectoryPicker" in window?`<button class="btn text" data-a="folder">Modulordner verbinden</button>`:""}
+      <div class="spacer"></div>
+    </div>`;
+  const syncbar=`<div class="syncbar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.5 12a4 4 0 0 0 .5 7z"/></svg>
+      <span>Sync: zuletzt <b>${sinceTxt(S.sync?.last)}</b></span><div class="spacer"></div>
+      <button class="btn text" data-a="restore">Laden</button><button class="btn text" data-a="backup">Sichern</button></div>`;
+  const banner = S.storageOk?"":`<div class="banner">Dein Browser erlaubt hier kein dauerhaftes Speichern. Nutze am besten Chrome oder Firefox und sichere deinen Fortschritt regelmäßig.</div>`;
+  if(!mods.length) return `
+    <div class="brand"><span class="dot"></span>LernApp</div>${banner}
+    <div class="empty">
+      <div style="margin:0 auto 14px;width:190px">${mascot("idle",190,{level:1})}</div>
+      <h1>Lernen, bis es sitzt.</h1>
+      <p style="margin-bottom:0">Das ist <b>${esc(S.pet.name)}</b>, dein Lern-Hippo. Jeder Lerntag ist ein Trainingstag – je mehr du deinen Kopf trainierst, desto stärker wird es. Vergisst du es, wird es traurig.</p>
+      <p>Lade ein Lernmodul, um zu starten. Jede Frage gilt als gemeistert, wenn du sie ${MASTER}× hintereinander richtig beantwortest. Dein Ziel: 100 %.</p>
+      <div class="row" style="justify-content:center;flex-wrap:wrap">
+        <button class="btn primary" data-a="add">Modul hinzufügen</button>
+        <button class="btn line" data-a="demo">Beispielmodul ausprobieren</button>
+      </div>
+      <p class="small" style="margin-top:22px">Du kannst eine <code>.lernmodul</code>-Datei auch einfach ins Fenster ziehen.</p>
+    </div>${tools}${syncbar}`;
+  let n=0,m=0,pts=0;
+  for(const mod of mods){ const s=moduleStats(mod); n+=s.n; m+=s.mastered; pts+=s.pct*s.n; }
+  const total=n?pts/n:0;
+  const cards=mods.map(mod=>{ const s=moduleStats(mod);
+    const chips=mod.sections.map(sec=>`<span class="chip">${sec.chapters.length} ${esc(sec.title)}</span>`).join("");
+    return `<button class="card mcard" data-a="open" data-id="${esc(mod.id)}">
+      <div class="row" style="align-items:flex-start">${ring(s.pct,58,6)}<div class="spacer"></div></div>
+      <div><div class="t">${esc(mod.title)}</div>${mod.subtitle?`<div class="s">${esc(mod.subtitle)}</div>`:""}</div>
+      <div class="chips">${chips}</div>
+      <div class="s">${s.mastered} von ${s.n} Fragen gemeistert${(d=>d?` · <span class="duetxt">${d} zum Auffrischen</span>`:"")(dueItems(mod).length)}</div>
+    </button>`; }).join("");
+  return `
+    <div class="brand"><span class="dot"></span>LernApp</div>${banner}
+    ${petCard()}
+    <div class="hero">
+      ${ring(total,120,10)}
+      <div>
+        <h1>${total>=1?"Alles gemeistert.":"Dein Fortschritt"}</h1>
+        <div class="stats">
+          <div class="stat"><b>${m} / ${n}</b><span>Fragen gemeistert</span></div>
+          <div class="stat"><b>${mods.length}</b><span>Modul${mods.length>1?"e":""}</span></div>
+        </div>
+      </div>
+    </div>
+    <h2>Meine Module</h2>
+    <div class="grid">${cards}
+      <button class="card addcard" data-a="add"><span class="plus">+</span>Modul hinzufügen</button>
+    </div>${tools}${syncbar}`;
+}
+function vModule(){
+  const mod=S.modules.get(S.view.id); if(!mod){ S.view={name:"home"}; return vHome(); }
+  const s=moduleStats(mod);
+  const mistakes=allItems(mod).filter(x=>{const p=qp(mod.id,x.q.id);return p.w>0&&p.s<MASTER;}).length;
+  const due=dueItems(mod).length;
+  const firstOpen=mod.sections.flatMap(sec=>sec.chapters).find(ch=>chapterStats(mod.id,ch).pct<1);
+  const secs=mod.sections.map(sec=>{
+    const rows=sec.chapters.map((ch,i)=>{ const c=chapterStats(mod.id,ch); const done=c.pct>=1;
+      return `<button class="ch ${done?"done":""}" data-a="chapter" data-ch="${esc(ch.id)}">
+        <span class="num">${done?"✓":i+1}</span>
+        <span class="body"><div class="title">${esc(ch.title)}</div>
+          <div class="meta">${c.mastered} / ${c.n} gemeistert${(d=>d?` · <span class="duetxt">${d} zum Auffrischen</span>`:"")(dueItems(mod,ch.id).length)}</div>
+          <div class="bar"><i style="width:${c.pct*100}%"></i></div></span>
+        <span class="pct">${pctTxt(c.pct)}</span></button>`; }).join("");
+    return `<h2>${esc(sec.title)}</h2><div class="chlist">${rows||'<p class="muted small">Noch keine Kapitel.</p>'}</div>`;
+  }).join("");
+  return `
+    <div class="row"><button class="iconbtn" data-a="home" aria-label="Zurück">←</button><div class="spacer"></div></div>
+    <div class="hero">
+      ${ring(s.pct,120,10)}
+      <div style="min-width:0">
+        <h1>${esc(mod.title)}</h1>
+        <div class="muted" style="margin-top:6px">${s.mastered} von ${s.n} Fragen gemeistert · ${s.chapters} Kapitel${mod.updated?` · Stand ${esc(mod.updated)}`:""}</div>
+      </div>
+    </div>
+    ${due?`<div class="card refresh"><div class="rtext"><b>Zeit für eine kleine Auffrischung?</b><div class="small muted">${due===1?"Eine Frage hast":`${due} Fragen hast`} du länger nicht gesehen. Sie zählen wieder voll, sobald du sie noch einmal richtig beantwortest.</div></div><button class="btn line" data-a="refresh">Auffrischen</button></div>`:""}
+    <div class="actions">
+      ${firstOpen?`<button class="btn primary" data-a="chapter" data-ch="${esc(firstOpen.id)}">Weiterlernen: ${esc(firstOpen.title)}</button>`:`<button class="btn primary" data-a="exam">Alles gemeistert · Prüfung simulieren</button>`}
+      <button class="btn line" data-a="mistakes" ${mistakes?"":"disabled"}>Fehler wiederholen${mistakes?` (${mistakes})`:""}</button>
+      ${firstOpen?`<button class="btn line" data-a="exam">Prüfungssimulation</button>`:""}
+    </div>
+    ${secs}
+    <div class="tools">
+      <button class="btn text" data-a="add">Modul hinzufügen / aktualisieren</button>
+      <div class="spacer"></div>
+      <button class="btn text" data-a="reset">Fortschritt zurücksetzen</button>
+      <button class="btn text danger" data-a="remove">Modul entfernen</button>
+    </div>`;
+}
+function vQuiz(){
+  const ss=S.session, it=ss.queue[ss.idx], q=it.q, cur=ss.cur, mod=S.modules.get(ss.modId);
+  const p=qp(ss.modId,q.id), es=cur.checked?Math.min(p.s,MASTER):effS(ss.modId,q.id);
+  const correctIdx=new Set(q.options.map((o,i)=>o.correct?i:-1).filter(i=>i>=0));
+  const hasHelp=(q.slides||[]).some(id=>mod.slides[id])||q.context;
+  const opts=cur.order.map((oi,k)=>{
+    let cls="opt "+(q.type==="single"||!q.type?"single":"multi");
+    if(!cur.checked){ if(cur.sel.has(oi)) cls+=" sel"; }
+    else { if(cur.sel.has(oi)) cls+= correctIdx.has(oi)?" right":" wrong"; else if(correctIdx.has(oi)) cls+=" missed"; }
+    return `<button class="${cls}" data-a="opt" data-i="${oi}" ${cur.checked?"disabled":""}><span class="key">${LETTERS[k]}</span><span class="otext">${fmt(q.options[oi].text)}</span></button>`;
+  }).join("");
+  const fb = cur.checked ? `<div class="feedback ${cur.correct?"ok":"bad"}">
+      <b>${cur.correct?(cur.hint?"Richtig, mit Folienhilfe":"Richtig"):"Nicht ganz"}</b>${q.type==="klausur"&&!correctIdx.size?`<div style="margin-top:4px"><b>Hier ist keine der Antworten richtig.</b></div>`:""}${q.explanation?fmt(q.explanation):""}
+      ${cur.correct&&!cur.hint&&p.s>=MASTER?`<div style="margin-top:6px;color:var(--or-deep);font-weight:600">${cur.due?"Aufgefrischt ✓ Die nächste Auffrischung kommt später.":"Frage gemeistert ✓"}</div>`:""}</div>` : "";
+  const prog=(ss.idx+(cur.checked?1:0))/ss.queue.length;
+  return `
+    <div class="qtop">
+      <button class="iconbtn" data-a="quit" aria-label="Beenden">✕</button>
+      <div class="info"><div class="ctx">${esc(ss.title)} · Frage ${ss.idx+1} von ${ss.queue.length}</div>
+        <div class="bar"><i style="width:${prog*100}%"></i></div></div>
+      <div class="qpet" data-key="${ss.idx}-${cur.checked?(cur.correct?"r":"f"):"t"}">${mascot(!cur.checked?"gym":cur.correct?"gymok":"gymfail",112,{level:petStatus().level})}<div class="reps"><b>${ss.right}</b> ${ss.right===1?"Rep":"Reps"}</div></div>
+    </div>
+    <div class="card qcard">
+      <div class="qlabel">${esc(it.sec.title)} · ${esc(it.ch.title)}
+        ${cur.due?`<span class="duetag">Auffrischung</span>`:""}<span class="streak" title="${es} von ${MASTER}× richtig in Folge">${Array.from({length:MASTER},(_,i)=>`<i class="${i<es?"on":""}"></i>`).join("")}</span></div>
+      <div class="qtext">${fmt(q.question)}</div>
+      ${q.type==="multi"?`<div class="hint">Mehrere Antworten können richtig sein.</div>`:q.type==="klausur"?`<div class="hint">Klausurformat: Keine, eine, mehrere oder alle Antworten können richtig sein.</div>`:""}
+      <div class="opts">${opts}</div>
+      ${fb}
+      <div class="qbar">
+        ${hasHelp?`<button class="btn ghost" data-a="slides">Folie<span class="lg"> ansehen</span></button>`:""}
+        <button class="btn ghost" data-a="prompt">KI<span class="lg"> fragen</span></button>
+        <div class="spacer"></div>
+        ${cur.checked?`<button class="btn primary" data-a="next">Weiter</button>`:(q.type==="klausur"&&!cur.sel.size?`<button class="btn primary" data-a="check">Keine ist richtig – prüfen</button>`:`<button class="btn primary" data-a="check" ${cur.sel.size?"":"disabled"}>Antwort prüfen</button>`)}
+      </div>
+    </div>
+    <div class="kbd">Tasten: 1–${q.options.length} auswählen · Enter prüfen/weiter</div>`;
+}
+function vResult(){
+  const ss=S.session, mod=S.modules.get(ss.modId);
+  let now, label;
+  if(ss.kind==="chapter"){ const ch=mod.sections.flatMap(s=>s.chapters).find(c=>c.id===ss.chId); now=chapterStats(mod.id,ch).pct; label=`Kapitel „${ch.title}“`; }
+  else { now=moduleStats(mod).pct; label=`Modul „${mod.title}“`; }
+  const done=now>=1, diff=Math.round((now-ss.startPct)*100);
+  const examPct = ss.total? Math.round(ss.right/ss.total*100):0;
+  const st=petStatus(), ratio=ss.total?ss.right/ss.total:0;
+  const petMood = st.mood==="dead"?"dead" : (done||ss.goalReached||ratio>=.7)?"happy" : ratio>=.4?"idle":"surprised";
+  const petLine = st.mood==="dead" ? "" : ss.goalReached ? `<div class="bubble" style="margin:0 auto 18px">Training geschafft! ${esc(S.pet.name)} wird stärker · ${st.streak} ${st.streak===1?"Tag":"Tage"} Serie</div>`
+    : st.today<st.goal ? `<div class="bubble" style="margin:0 auto 18px">Noch ${st.goal-st.today} ${st.goal-st.today===1?"Frage":"Fragen"} bis zum heutigen Training.</div>` : "";
+  return `<div class="result ${done?"celebrate":""}">
+    <div class="row gymrow">
+      <div class="gym">${st.mood==="dead"?mascot("dead",190,{level:1}):`<div id="gymPet">${mascot(ss.right?"train":petMood,190,{level:st.level,cls:"sync"})}</div>
+        <div class="repcount"><b id="repN">0</b> Reps</div>`}</div>
+      ${ring(now,130,11)}</div>
+    ${petLine}
+    <h1>${done?"100 % – gemeistert!":ss.kind==="exam"?`${examPct} % richtig`:"Einheit geschafft"}</h1>
+    <p>${ss.right} von ${ss.total} Antworten richtig. ${label} steht jetzt bei ${pctTxt(now)}${diff>0?` (+${diff} Prozentpunkte)`:""}.</p>
+    <div class="row" style="justify-content:center;flex-wrap:wrap">
+      ${!done||ss.kind!=="chapter"?`<button class="btn primary" data-a="again">Weiterlernen</button>`:""}
+      <button class="btn line" data-a="backmod">Zur Modulübersicht</button>
+    </div>
+    <div style="margin-top:14px"><button class="btn text" data-a="backup">Fortschritt sichern (Sync)</button>
+    </div></div>`;
+}
+function gymAnimation(){
+  const ss=S.session; if(!ss || ss.gymDone) return; ss.gymDone=true;
+  const box=document.getElementById("gymPet"), cnt=document.getElementById("repN"); if(!box||!cnt) return;
+  const st=petStatus(), N=ss.right, ratio=ss.total?ss.right/ss.total:0;
+  const finalMood=(ss.goalReached||ratio>=.7)?"cheer":ratio>=.4?"happy":"idle";
+  if(!N){ box.innerHTML=mascot("surprised",190,{level:st.level}); return; }
+  const P=Math.max(.45,Math.min(.95,7/N));
+  box.querySelector("svg").style.setProperty("--p",P+"s");
+  let i=0; const timer=setInterval(()=>{
+    if(!document.body.contains(cnt)){ clearInterval(timer); return; }
+    i++; cnt.textContent=i; const rc=cnt.parentElement; rc.classList.remove("bump"); void rc.offsetWidth; rc.classList.add("bump");
+    if(i>=N){ clearInterval(timer); setTimeout(()=>{ if(document.body.contains(box)) box.innerHTML=mascot(finalMood,190,{level:st.level,cls:"pop"}); },P*500); }
+  }, P*1000);
+}
+function render(){
+  const v=S.view.name, oldPet=$app.querySelector(".qpet");
+  $app.innerHTML = v==="module"?vModule() : v==="quiz"?vQuiz() : v==="result"?vResult() : vHome();
+  const newPet=$app.querySelector(".qpet");
+  if(oldPet && newPet && oldPet.dataset.key===newPet.dataset.key) newPet.replaceWith(oldPet);
+  if(v==="result") gymAnimation();
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", async e=>{
+  const b=e.target.closest("[data-a]"); if(!b) return;
+  const a=b.dataset.a, modId=S.view.id||S.session?.modId;
+  switch(a){
+    case "add": addChooser(); break;
+    case "addfile": closeModal(); document.getElementById("fileModule").click(); break;
+    case "addprompt": addPrompt(); break;
+    case "pasteimport": pasteImport(); break;
+    case "folder": closeModal(); connectFolder(); break;
+    case "demo": await importModule(JSON.parse(JSON.stringify(DEMO_MODULE))); render(); break;
+    case "backup": exportBackup(); break;
+    case "restore": document.getElementById("fileBackup").click(); break;
+    case "open": S.view={name:"module",id:b.dataset.id}; render(); window.scrollTo(0,0); break;
+    case "home": S.view={name:"home"}; render(); break;
+    case "chapter": startSession("chapter",S.view.id,b.dataset.ch); break;
+    case "mistakes": startSession("mistakes",S.view.id); break;
+    case "refresh": startSession("refresh",S.view.id); break;
+    case "exam": startSession("exam",S.view.id); break;
+    case "opt": toggleOpt(+b.dataset.i); break;
+    case "check": check(); break;
+    case "next": next(); break;
+    case "slides": showSlides(); break;
+    case "prompt": showPrompt(); break;
+    case "copy": copyPrompt(); break;
+    case "close": closeModal(); break;
+    case "petsettings": petSettings(); break;
+    case "adopt": petSettings(true); break;
+    case "goal": S.pet.goal=+b.dataset.g; document.querySelectorAll(".goalchips button").forEach(x=>x.classList.toggle("on",x===b)); break;
+    case "petsave": { const n=document.getElementById("petName").value.trim(); if(n) S.pet.name=n; savePet(); closeModal(); render(); break; }
+    case "adoptsave": { const n=document.getElementById("petName").value.trim()||"Hugo"; const P=S.pet;
+      P.graveyard.push({name:P.name,best:P.best,level:petStatus().levelName,died:P.diedOn||dayKey()}); S.pet=newPet(n,P); savePet(); closeModal(); render(); toast(`Willkommen, ${n}!`); break; }
+    case "confirm": closeModal(); modalConfirm&&modalConfirm(); break;
+    case "quit": S.view={name:"module",id:S.session.modId}; S.session=null; render(); break;
+    case "again": { const ss=S.session; S.view={name:"module",id:ss.modId}; startSession(ss.kind,ss.modId,ss.chId); break; }
+    case "backmod": S.view={name:"module",id:S.session.modId}; S.session=null; render(); window.scrollTo(0,0); break;
+    case "reset": confirmBox("Fortschritt zurücksetzen?","Alle Fragen dieses Moduls starten wieder bei 0 %. Das lässt sich nur mit einer Sicherung rückgängig machen.","Zurücksetzen",async()=>{
+        S.progress[modId]={}; await DB.put("progress",modId,{}).catch(()=>{}); render(); toast("Fortschritt zurückgesetzt."); }); break;
+    case "remove": confirmBox("Modul entfernen?","Das Modul verschwindet aus der App. Dein Fortschritt bleibt gespeichert. Lädst du die Datei später wieder, ist alles wie vorher.","Entfernen",async()=>{
+        S.modules.delete(modId); await DB.del("modules",modId).catch(()=>{}); S.view={name:"home"}; render(); }); break;
+  }
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ closeModal(); return; }
+  if(document.getElementById("overlay") || S.view.name!=="quiz" || e.target.tagName==="TEXTAREA") return;
+  const ss=S.session; if(!ss) return;
+  if(/^[1-9]$/.test(e.key)){ const k=+e.key-1; if(k<ss.cur.order.length) toggleOpt(ss.cur.order[k]); }
+  else if(e.key==="Enter"){ e.preventDefault(); ss.cur.checked?next():check(); }
+});
+document.getElementById("fileModule").addEventListener("change",e=>{ importFiles([...e.target.files]); e.target.value=""; });
+document.getElementById("fileBackup").addEventListener("change",e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); e.target.value=""; });
+const drop=document.getElementById("drop"); let dragN=0;
+window.addEventListener("dragenter",e=>{ if([...(e.dataTransfer?.types||[])].includes("Files")){ dragN++; drop.classList.add("show"); } });
+window.addEventListener("dragleave",()=>{ if(--dragN<=0){ dragN=0; drop.classList.remove("show"); } });
+window.addEventListener("dragover",e=>e.preventDefault());
+window.addEventListener("drop",e=>{ e.preventDefault(); dragN=0; drop.classList.remove("show");
+  const files=[...e.dataTransfer.files]; if(!files.length) return;
+  const back=files.filter(f=>/fortschritt|backup/i.test(f.name)); const mods=files.filter(f=>!back.includes(f));
+  back.forEach(importBackup); if(mods.length) importFiles(mods); });
+
+/* ---------- Start ---------- */
+(async ()=>{
+  try{
+    await DB.open();
+    for(const [k,v] of await DB.all("modules")) S.modules.set(k,v);
+    for(const [k,v] of await DB.all("progress")) S.progress[k]=v;
+    for(const [k,v] of await DB.all("meta")){ if(k==="pet") S.pet=v; if(k==="sync") S.sync=v; }
+    navigator.storage?.persist?.().catch(()=>{});
+  }catch(e){ S.storageOk=false; }
+  if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(()=>{});
+  if(!S.pet || S.pet.kind!=="hippo"){ S.pet=newPet("Hugo",S.pet); S.pet.graveyard=[]; savePet(); }
+  render();
+})();
+</script>
+</body>
+</html>
