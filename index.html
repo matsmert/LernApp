@@ -60,7 +60,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute
 .stat span{font-size:13px;color:var(--muted)}
 /* Ring */
 .ring{position:relative;flex:none}
-.ring svg{display:block;transform:rotate(-90deg)}
+.ring svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
 .ring .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;letter-spacing:-.02em}
 .ring.done .lbl{color:var(--or-deep)}
 /* Module cards */
@@ -245,10 +245,10 @@ button.card:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(0,0,0,.04
   .qpet svg{width:84px;height:84px}
   .qpet{margin:-18px -4px -16px 0}
   .opt{padding:14px}
-  .gymrow{gap:10px}.gym svg{width:150px;height:150px}.gymrow .ring svg{width:104px;height:104px}.gymrow .ring{width:104px!important;height:104px!important}
+  .gymrow{gap:10px}.gym svg{width:150px;height:150px}.gymrow .ring{width:104px!important;height:104px!important}.gymrow .ring .lbl{font-size:24px!important}
   .tools{justify-content:flex-start}
   h1{font-size:27px} .qtext{font-size:19px} .qcard{padding:22px 18px} .hero{gap:18px}
-  .hero .ring svg{width:96px;height:96px}
+  .hero .ring{width:96px!important;height:96px!important}.hero .ring .lbl{font-size:22px!important}
 }
 </style>
 </head>
